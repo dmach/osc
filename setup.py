@@ -122,6 +122,17 @@ setuptools.setup(
     scripts=['osc-wrapper.py'],
     data_files=data_files,
     install_requires=['M2Crypto', 'chardet'],
+    entry_points={
+      'console_scripts': [
+          'osc=osc.babysitter:main'
+          ],
+    },
+    # Override certain command classes with our own ones
+    cmdclass={
+        'build': build_osc,
+        'build_docs': build_docs,
+        'install_data': install_data
+    },
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Environment :: Console",
@@ -141,13 +152,5 @@ setuptools.setup(
         "Topic :: Software Development :: Build Tools",
         "Topic :: System :: Archiving :: Packaging",
     ],
-
-
-    # Override certain command classes with our own ones
-    cmdclass={
-        'build': build_osc,
-        'build_docs': build_docs,
-        'install_data': install_data
-    },
     **addparams
 )
