@@ -411,32 +411,32 @@ Storage:
 
 API communication:
 
-`# use this API server (hostname[:port])`  
-`# (it needs a section [api.opensuse.org] with the credentials)`  
-`# default:`  
-`apisrv = api.opensuse.org`
+    # use this API server (hostname[:port])
+    # (it needs a section [api.opensuse.org] with the credentials)
+    # default:
+    apisrv = api.opensuse.org
 
-`# use this protocol to access the API server (http or https)`  
-`# default:`  
-`scheme = https`
+    # use this protocol to access the API server (http or https)
+    # default:
+    scheme = https
 
 API host:
 
-`# API hosts can be referenced by aliases, e.g. 'osc -A alias ...'`  
-`# List aliases for API hosts under the API host section.`  
-`# `[`https://api.opensuse.org`](https://api.opensuse.org)  
-`# user=jdoe`  
-`# aliases=`
+    # API hosts can be referenced by aliases, e.g. 'osc -A alias ...'
+    # List aliases for API hosts under the API host section.
+    # `[`https://api.opensuse.org`](https://api.opensuse.org)
+    # user=jdoe
+    # aliases=
 
 Local build:
 
-`# Wrapper to call build as root (sudo, su -, ...)`  
-`# default:`  
-`su-wrapper = su -c`  
-`# no password required with:`  
-`#su-wrapper = sudo`  
-`#with entry in sudoers file:`  
-`# `<username>` ALL = NOPASSWD: /usr/bin/build`
+    # Wrapper to call build as root (sudo, su -, ...)
+    # default:
+    su-wrapper = su -c
+    # no password required with:
+    #su-wrapper = sudo
+    #with entry in sudoers file:
+    # `<username>` ALL = NOPASSWD: /usr/bin/build
 
 `# For convenience/debugging, osc adds internally vim gdb strace to`  
 `# the packages installed in the build chroot if extra-pkgs is not set to:`  
