@@ -8,27 +8,29 @@ Patches can be submitted via
    https://github.com/openSUSE/osc
 
 
-INSTALLATION:
+INSTALLATION
+------------
 
 RPM packages are here (rpm-md repository):
 http://download.opensuse.org/repositories/openSUSE:/Tools/
 
-To install from git, do
+To install from git, do:
 
-        python setup.py build
-        python setup.py install
-        # create a symlink 'osc' in your path pointing to osc.py.
-        ln -s osc-wrapper.py /usr/bin/osc
+    python setup.py build
+    python setup.py install
+    # create a symlink 'osc' in your path pointing to osc.py.
+    ln -s osc-wrapper.py /usr/bin/osc
 
 Alternatively, you can directly use osc-wrapper.py from the source dir
 (which is easier if you develop on osc).
 
 
 
-CONFIGURATION:
+CONFIGURATION
+-------------
 
 When you use it for the first time, it will ask you for your username and
-password, and store it in ~/.oscrc.
+password, and store it in ``~/.oscrc``.
 
 
 CONFIGURATION MIGRATION (only affects versions >= 0.114):
