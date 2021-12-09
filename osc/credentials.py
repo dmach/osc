@@ -1,7 +1,9 @@
 import importlib
 import bz2
 import base64
+import codecs
 import getpass
+import subprocess
 try:
     from urllib.parse import urlsplit
 except ImportError:
@@ -194,6 +196,178 @@ class KeyringCredentialsManager(AbstractCredentialsManager):
         keyring.delete_password(urlsplit(url)[1], user)
 
 
+r"""
+keyctl cheat sheet
+------------------
+
+Show all keyrings.
+Please note that the last column is a tree hierarchy.
+$ keyctl show
+
+    111 --alswrv   1000   100  keyring: _ses
+    222 --alswrv   1000   100   \_ keyring: osc
+    333 --alswrv   1000   100       \_ user: <user>@<host>:<port>
+
+
+List keyrings in session keyring.
+$ keyctl list @s
+
+    222: --alswrv  1000   100 keyring: osc
+
+
+Remove a key or a keyring from a parent.
+$ keyctl unlink <id> <parent-id>
+
+
+Create a new keyring under session keyring.
+WARNING: Do not run this more than once, because it replaces any existing keyring with the same name.
+$ keyctl newring osc @s
+
+
+Resolve keyring name to ID.
+$ keyctl request keyring osc
+
+    222
+
+
+Store a password.
+$ echo -n "<password>" | keyctl padd user <user>@<host>:<port> <osc keyring id>
+$ echo -n "opensuse" | keyctl padd user Admin@api.opensuse.org:443 222
+
+
+Retrieve password id from a keyring.
+$ keyctl request user <user>@<host>:<port> <osc keyring id>
+$ keyctl request user Admin@api.opensuse.org:443 222
+
+    444
+
+
+Resolve retrieved password id to actual string.
+$ keyctl print <password id>
+$ keyctl print 444
+
+    opensuse
+"""
+
+
+class KeyctlCredentialsManager(AbstractCredentialsManager):
+    def __init__(self, cp, options):
+        super(self.__class__, self).__init__(cp, options)
+
+        # resolve keyring with name "osc" to ID
+        cmd = ["keyctl", "request", "keyring", "osc"]
+        returncode, stdout, _ = self._run(cmd)
+        if returncode == 0:
+            self.osc_keyring_id = stdout.strip()
+            return
+
+        # the previous command failed, let's create osc keyring under session keyring
+        cmd = ["keyctl", "newring", "osc", "@s"]
+        returncode, stdout, stderr = self._run(cmd)
+        if returncode == 0:
+            self.osc_keyring_id = stdout.strip()
+            return
+
+        raise RuntimeError("Unable to create 'osc' keyring: {}".format(stderr))
+
+    def _get_key_desc(self, url, user):
+        """
+        Construct key description (which identifies the key in the keyring)
+        based on apiurl (host, port) and user, because we want to store
+        different credentials for each OBS instance.
+        """
+        splitted_url = urlsplit(url)
+        scheme = splitted_url.scheme
+        host = splitted_url.netloc
+        port = splitted_url.port
+
+        if not port:
+            # always use port as part of key description
+            if scheme == "http":
+                port = 80
+            else:
+                port = 443
+
+        return "{}@{}:{}".format(user, host, port)
+
+    def _run(self, cmd, stdin=None):
+        popen_kwargs = {}
+        if stdin:
+            stdin = stdin.encode("utf-8")
+            popen_kwargs["stdin"] = subprocess.PIPE
+        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **popen_kwargs)
+        stdout, stderr = proc.communicate(stdin)
+        return proc.returncode, stdout.decode("utf-8"), stderr.decode("utf-8")
+
+    def get_password(self, url, user, defer=True):
+        if defer:
+            def func():
+                return self._get_password(url, user)
+            return func
+        return self._get_password(url, user)
+
+    def _get_password(self, url, user):
+        # get key_id for given key type and description
+        cmd = ["keyctl", "request", "user", self._get_key_desc(url, user), self.osc_keyring_id]
+        returncode, stdout, _ = self._run(cmd)
+
+        if returncode != 0:
+            # password not found in the keyring, ask user to provide one and then save it in the keyring
+            password = getpass.getpass('Password for {}@{}: '.format(user, url))
+            self.set_password(url, user, password)
+            return password
+
+        # password found in the keyring, use it
+        key_id = stdout.strip()
+
+        # resolve key_id into an actual password
+        cmd = ["keyctl", "print", key_id]
+        _, stdout, _ = self._run(cmd)
+        password = stdout.strip()
+
+        hex_prefix = ":hex:"
+        if password.startswith(hex_prefix):
+            # convert :hex:<hex-encoded-password> to utf-8 text
+            hex_decoder = codecs.getdecoder("hex_codec")
+            password = hex_decoder(password[len(hex_prefix):])[0].decode('utf-8')
+        return password
+
+    def set_password(self, url, user, password):
+        cmd = ["keyctl", "padd", "user", self._get_key_desc(url, user), self.osc_keyring_id]
+        # securely pass password through stdin
+        self._run(cmd, stdin=password)
+
+        # set credentials manager class in the config
+        self._cp.set(url, self.config_entry, self._qualified_name())
+
+    def delete_password(self, url, user):
+        # get key_id for given key type and description
+        cmd = ["keyctl", "request", "user", self._get_key_desc(url, user), self.osc_keyring_id]
+        returncode, stdout, _ = self._run(cmd)
+
+        if returncode != 0:
+            # password not found in the keyring, nothing to delete
+            return
+
+        # password found in the keyring, use the id
+        key_id = stdout.strip()
+
+        # remove password from the 'osc' keyring
+        cmd = ["keyctl", "unlink", "user", key_id, self.osc_keyring_id]
+        self._run(cmd)
+
+
+class KeyctlCredentialsDescriptor(AbstractCredentialsManagerDescriptor):
+    def name(self):
+        return 'Keyctl'
+
+    def description(self):
+        return 'Securely store keys in kernel keyring (in-memory, per user session)'
+
+    def create(self, cp):
+        return KeyctlCredentialsManager(cp, None)
+
+
 class KeyringCredentialsDescriptor(AbstractCredentialsManagerDescriptor):
     def __init__(self, keyring_backend):
         self._keyring_backend = keyring_backend
@@ -294,6 +468,7 @@ def get_credentials_manager_descriptors():
     descriptors.append(PlaintextConfigFileDescriptor())
     descriptors.append(ObfuscatedConfigFileDescriptor())
     descriptors.append(TransientDescriptor())
+    descriptors.append(KeyctlCredentialsDescriptor())
     return descriptors
 
 
