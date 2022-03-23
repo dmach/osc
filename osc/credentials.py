@@ -19,6 +19,9 @@ except ImportError:
 
 
 class AbstractCredentialsManagerDescriptor(object):
+    # priority determines order in the backend list; higher number means higher priority
+    priority = 0
+
     def name(self):
         raise NotImplementedError()
 
@@ -29,7 +32,7 @@ class AbstractCredentialsManagerDescriptor(object):
         raise NotImplementedError()
 
     def __lt__(self, other):
-        return self.name() < other.name()
+        return (-self.priority, self.name()) < (-other.priority, other.name())
 
 
 class AbstractCredentialsManager(object):
@@ -82,6 +85,8 @@ class PlaintextConfigFileCredentialsManager(AbstractCredentialsManager):
 
 
 class PlaintextConfigFileDescriptor(AbstractCredentialsManagerDescriptor):
+    priority = -130
+
     def name(self):
         return 'Config file credentials manager'
 
@@ -117,6 +122,8 @@ class ObfuscatedConfigFileCredentialsManager(
 
 
 class ObfuscatedConfigFileDescriptor(AbstractCredentialsManagerDescriptor):
+    priority = -110
+
     def name(self):
         return 'Obfuscated Config file credentials manager'
 
@@ -155,6 +162,8 @@ class TransientCredentialsManager(AbstractCredentialsManager):
 
 
 class TransientDescriptor(AbstractCredentialsManagerDescriptor):
+    priority = -100
+
     def name(self):
         return 'Transient password store'
 
@@ -358,6 +367,8 @@ class KeyctlCredentialsManager(AbstractCredentialsManager):
 
 
 class KeyctlCredentialsDescriptor(AbstractCredentialsManagerDescriptor):
+    priority = 100
+
     def name(self):
         return 'Keyctl'
 
@@ -462,13 +473,13 @@ def get_credentials_manager_descriptors():
     descriptors = []
     for backend in backend_list:
         descriptors.append(KeyringCredentialsDescriptor(backend))
-    descriptors.sort()
     if gnomekeyring:
         descriptors.append(GnomeKeyringCredentialsDescriptor())
     descriptors.append(PlaintextConfigFileDescriptor())
     descriptors.append(ObfuscatedConfigFileDescriptor())
     descriptors.append(TransientDescriptor())
     descriptors.append(KeyctlCredentialsDescriptor())
+    descriptors.sort()
     return descriptors
 
 
