@@ -468,8 +468,25 @@ class GnomeKeyringCredentialsDescriptor(AbstractCredentialsManagerDescriptor):
 def get_credentials_manager_descriptors():
     if has_keyring_support():
         backend_list = keyring.backend.get_all_keyring()
+
+        # remove unwanted backends
+        to_remove = [
+            # has no use, just fails every time
+            "keyring.backends.fail.Keyring",
+
+            # we have an alternative plaintext keyring
+            "keyrings.alt.file.PlaintextKeyring",
+
+            # discovers passwords in other backends
+            "keyring.backends.chainer.ChainerBackend",
+        ]
+        for i in backend_list[:]:
+            cls = "{}.{}".format(i.__class__.__module__, i.__class__.__name__)
+            if cls in to_remove:
+                backend_list.remove(i)
     else:
         backend_list = []
+
     descriptors = []
     for backend in backend_list:
         descriptors.append(KeyringCredentialsDescriptor(backend))
