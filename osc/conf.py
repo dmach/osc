@@ -1106,7 +1106,9 @@ def select_credentials_manager_descr():
     creds_mgr_descriptors = credentials.get_credentials_manager_descriptors()
     for i, creds_mgr_descr in enumerate(creds_mgr_descriptors, 1):
         print('%d) %s (%s)' % (i, creds_mgr_descr.name(), creds_mgr_descr.description()))#
-    i = raw_input('Select credentials manager: ')
+    i = raw_input('Select credentials manager [default = 1]: ')
+    if not i:
+        i = "1"
     if not i.isdigit():
         sys.exit('Invalid selection')
     i = int(i) - 1
