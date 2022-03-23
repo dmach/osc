@@ -88,10 +88,10 @@ class PlaintextConfigFileDescriptor(AbstractCredentialsManagerDescriptor):
     priority = -130
 
     def name(self):
-        return 'Config file credentials manager'
+        return 'Config'
 
     def description(self):
-        return 'Store the credentials in the config file (plain text)'
+        return 'Store the password in plain text in the osc config file (INSECURE)'
 
     def create(self, cp):
         return PlaintextConfigFileCredentialsManager(cp, None)
@@ -125,10 +125,10 @@ class ObfuscatedConfigFileDescriptor(AbstractCredentialsManagerDescriptor):
     priority = -110
 
     def name(self):
-        return 'Obfuscated Config file credentials manager'
+        return 'Obfuscated Config'
 
     def description(self):
-        return 'Store the credentials in the config file (obfuscated)'
+        return 'Store the password in obfuscated form in the osc config file (INSECURE)'
 
     def create(self, cp):
         return ObfuscatedConfigFileCredentialsManager(cp, None)
@@ -165,10 +165,10 @@ class TransientDescriptor(AbstractCredentialsManagerDescriptor):
     priority = -100
 
     def name(self):
-        return 'Transient password store'
+        return 'Transient'
 
     def description(self):
-        return 'Do not store the password and always ask for the password'
+        return 'Do not store the password and always ask for it (SECURE)'
 
     def create(self, cp):
         return TransientCredentialsManager(cp, None)
@@ -373,7 +373,7 @@ class KeyctlCredentialsDescriptor(AbstractCredentialsManagerDescriptor):
         return 'Keyctl'
 
     def description(self):
-        return 'Securely store keys in kernel keyring (in-memory, per user session)'
+        return 'Store the password in kernel keyring (SECURE, in-memory, per user session)'
 
     def create(self, cp):
         return KeyctlCredentialsManager(cp, None)
