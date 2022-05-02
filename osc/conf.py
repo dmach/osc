@@ -562,10 +562,11 @@ def _build_opener(apiurl):
 
         def guess_keyfile(self):
             sshdir = os.path.expanduser('~/.ssh')
-            if os.path.exists(sshdir + '/id_ed25519'):
-                return 'id_ed25519'
-            if os.path.exists(sshdir + '/id_rsa'):
-                return 'id_rsa'
+            keyfiles = ('id_ed25519', 'id_rsa')
+            for keyfile in keyfiles:
+                keyfile_path = os.path.join(sshdir, keyfile)
+                if os.path.isfile(keyfile_path):
+                    return keyfile_path
             raise oscerr.OscIOError(None, 'could not guess ssh identity keyfile')
 
         def ssh_sign(self, data, namespace, keyfile=None):
@@ -573,21 +574,25 @@ def _build_opener(apiurl):
                 data = bytes(data, 'utf-8')
             except:
                 pass
-            if keyfile is None:
+
+            if not keyfile:
                 keyfile = self.guess_keyfile()
-            if '/' not in keyfile:
-                keyfile = '~/.ssh/' + keyfile
-            keyfile = os.path.expanduser(keyfile)
-            proc = subprocess.Popen(['ssh-keygen', '-Y', 'sign', '-f', keyfile, '-n', namespace, '-q'],
-                                    stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-            signature = (proc.communicate(data))[0]
+            else:
+                if '/' not in keyfile:
+                    keyfile = os.path.join('~/.ssh', keyfile)
+                keyfile = os.path.expanduser(keyfile)
+
+            cmd = ['ssh-keygen', '-Y', 'sign', '-f', keyfile, '-n', namespace, '-q']
+            proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+            stdout, _ = proc.communicate(data)
             if proc.returncode:
                 raise oscerr.OscIOError(None, 'ssh-keygen signature creation failed: %d' % proc.returncode)
-            signature = decode_it(signature)
-            m = re.match(r"\A-----BEGIN SSH SIGNATURE-----\n(.*)\n-----END SSH SIGNATURE-----", signature, re.S)
-            if not m:
+
+            signature = decode_it(stdout)
+            match = re.match(r"\A-----BEGIN SSH SIGNATURE-----\n(.*)\n-----END SSH SIGNATURE-----", signature, re.S)
+            if not match:
                 raise oscerr.OscIOError(None, 'could not extract ssh signature')
-            return base64.b64decode(m.group(1))
+            return base64.b64decode(match.group(1))
 
         def get_authorization(self, req, chal):
             realm = chal.get('realm', '')
@@ -595,7 +600,7 @@ def _build_opener(apiurl):
             sigdata = "(created): %d" % now
             signature = self.ssh_sign(sigdata, realm, self.sshkey)
             signature = decode_it(base64.b64encode(signature))
-            return "keyId=\"%s\",algorithm=\"ssh\",headers=\"(created)\",created=%d,signature=\"%s\"" \
+            return 'keyId="%s",algorithm="ssh",headers="(created)",created=%d,signature="%s"' \
                 % (self.user, now, signature)
 
         def retry_http_signature_auth(self, req, auth):
