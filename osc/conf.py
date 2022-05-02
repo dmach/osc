@@ -562,6 +562,48 @@ def _build_opener(apiurl):
 
         def guess_keyfile(self):
             sshdir = os.path.expanduser('~/.ssh')
+
+            # try to use keys previously added to ssh-agent
+            cmd = ['ssh-add', '-l']
+            proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            stdout, _ = proc.communicate()
+
+            # if there are any keys loaded in the ssh-agent, match them with keys on disk
+            if proc.returncode == 0 and stdout.strip():
+                keys_in_agent = stdout.splitlines()
+
+                keys_in_home_ssh = {}
+                for keyfile in os.listdir(sshdir):
+                    keyfile_path = os.path.join(sshdir, keyfile)
+
+                    # skip public keys immediately
+                    if keyfile.endswith(".pub"):
+                        continue
+
+                    # skip everything that is not a file
+                    if not os.path.isfile(keyfile_path):
+                        continue
+
+                    # skip files that are not openssh private keys
+                    with open(keyfile_path, "r") as f:
+                        line = f.readline(100).strip()
+                        print(line)
+                        if line != "-----BEGIN OPENSSH PRIVATE KEY-----":
+                            continue
+
+                    cmd = ["ssh-keygen", "-lf", keyfile_path]
+                    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    stdout, _ = proc.communicate()
+                    if proc.returncode == 0 and stdout.strip():
+                        fingerprint = stdout.strip()
+                        keys_in_home_ssh[fingerprint] = keyfile_path
+
+                # do a key lookup, return first matching key
+                for fingerprint in keys_in_agent:
+                    keyfile_path = keys_in_home_ssh.get(fingerprint, None)
+                    if keyfile_path:
+                        return keyfile_path
+
             keyfiles = ('id_ed25519', 'id_rsa')
             for keyfile in keyfiles:
                 keyfile_path = os.path.join(sshdir, keyfile)
@@ -627,6 +669,8 @@ def _build_opener(apiurl):
                                  " the following scheme: '%s'" % scheme)
 
         def sshkey_known(self):
+            if not self.sshkey:
+                self.sshkey = self.guess_keyfile()
             return self.sshkey is not None
 
 
