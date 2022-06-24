@@ -584,24 +584,35 @@ def _build_opener(apiurl):
                     return True
             return False
 
+        def is_ssh_public_keyfile(self, keyfile_path):
+            if not os.path.isfile(keyfile_path):
+                return False
+            return keyfile_path.endswith(".pub")
+
         def list_ssh_dir_keys(self):
             sshdir = os.path.expanduser('~/.ssh')
             keys_in_home_ssh = {}
             for keyfile in os.listdir(sshdir):
-                keyfile_path = os.path.join(sshdir, keyfile)
-                if (not os.path.isfile(keyfile_path) or
-                        keyfile.startswith("authorized_keys") or
-                        keyfile == "config" or
-                        keyfile.startswith("agent-") or
-                        keyfile.startswith("known_hosts")):
+                if keyfile.startswith(("agent-", "authorized_keys", "config", "known_hosts")):
+                    # skip files that definitely don't contain keys
                     continue
-                is_private = self.is_ssh_private_keyfile(keyfile_path)
+
+                # public key alone may be sufficient because the private key
+                # can get loaded into ssh-agent from gpg (yubikey works this way)
+                is_public = self.is_ssh_public_keyfile(keyfile_path)
+                # skip private detection if we think the key is a public one already
+                is_private = False if is_public else self.is_ssh_private_keyfile(keyfile_path)
+
+                if not is_public and not is_private:
+                    continue
+
                 cmd = ["ssh-keygen", "-lf", keyfile_path]
                 proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 stdout, _ = proc.communicate()
                 if proc.returncode == 0:
                     fingerprint = stdout.strip()
                     if fingerprint and (fingerprint not in keys_in_home_ssh or is_private):
+                        # prefer path to a private key
                         keys_in_home_ssh[fingerprint] = keyfile_path
             return keys_in_home_ssh
 
