@@ -540,8 +540,7 @@ def _build_opener(apiurl):
             for authreq in headers.get_all('www-authenticate', []):
                 scheme = authreq.split()[0].lower()
                 authreqs[scheme] = authreq
-            if 'signature' in authreqs and self.signatureauthhandler and \
-                    (self.signatureauthhandler.sshkey_known() or 'basic' not in authreqs):
+            if 'signature' in authreqs and self.signatureauthhandler:
                 del headers['www-authenticate']
                 headers['www-authenticate'] = authreqs['signature']
                 return self.signatureauthhandler.http_error_401(req, fp, code, msg, headers)
@@ -565,7 +564,7 @@ def _build_opener(apiurl):
             proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             stdout, _ = proc.communicate()
             if proc.returncode == 0 and stdout.strip():
-                return stdout.splitlines()
+                return [ x.split(b" ")[1] for x in stdout.splitlines()]
             else:
                 return []
 
@@ -597,6 +596,7 @@ def _build_opener(apiurl):
                     # skip files that definitely don't contain keys
                     continue
 
+                keyfile_path = os.path.join(sshdir, keyfile)
                 # public key alone may be sufficient because the private key
                 # can get loaded into ssh-agent from gpg (yubikey works this way)
                 is_public = self.is_ssh_public_keyfile(keyfile_path)
@@ -610,7 +610,7 @@ def _build_opener(apiurl):
                 proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 stdout, _ = proc.communicate()
                 if proc.returncode == 0:
-                    fingerprint = stdout.strip()
+                    fingerprint = stdout.strip().split(b" ")[1]
                     if fingerprint and (fingerprint not in keys_in_home_ssh or is_private):
                         # prefer path to a private key
                         keys_in_home_ssh[fingerprint] = keyfile_path
