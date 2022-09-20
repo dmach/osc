@@ -247,19 +247,19 @@ def os_path_samefile(path1, path2):
     except AttributeError:
         return os.path.realpath(path1) == os.path.realpath(path2)
 
+from dataclasses import dataclass
 
+@dataclass(order=True)
 class File:
     """represent a file, including its metadata"""
+    name: str
+    md5: str
+    size: int
+    mtime: int
+    skipped: bool = False
 
-    def __init__(self, name, md5, size, mtime, skipped=False):
-        self.name = name
-        self.md5 = md5
-        self.size = size
-        self.mtime = mtime
-        self.skipped = skipped
-
-    def __repr__(self):
-        return self.name
+#    def __repr__(self):
+#        return self.name
 
     def __str__(self):
         return self.name
