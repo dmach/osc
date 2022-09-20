@@ -79,7 +79,7 @@ jobs:
 
       - name: 'Run unit tests'
         run: |
-          pip3 install -e .
+          pip3 install --no-index --editable .
           python3 setup.py test
 
       - name: 'Generate coverage reports (OpenSUSE Tumbleweed)'
