@@ -62,6 +62,10 @@ Requires:       %{use_python_pkg}-cryptography
 Requires:       %{use_python_pkg}-rpm
 Requires:       %{use_python_pkg}-urllib3
 
+%if 0%{?python3_version_nodots} == 36
+Requires:       %{use_python_pkg}-dataclasses
+%endif
+
 # needed for showing download progressbars
 Recommends:     %{use_python_pkg}-progressbar
 
