@@ -31,7 +31,7 @@
 %endif
 
 Name:           osc
-Version:        1.0.0~b1
+Version:        1.0.0~b2
 Release:        0
 Summary:        Command-line client for the Open Build Service
 License:        GPL-2.0-or-later
@@ -54,6 +54,7 @@ BuildRequires:  %{argparse_manpage_pkg}
 BuildRequires:  %{use_python_pkg}-cryptography
 BuildRequires:  %{use_python_pkg}-devel >= 3.6
 BuildRequires:  %{use_python_pkg}-rpm
+BuildRequires:  %{use_python_pkg}-rpm-macros
 BuildRequires:  %{use_python_pkg}-setuptools
 BuildRequires:  %{use_python_pkg}-urllib3
 BuildRequires:  diffstat
@@ -62,7 +63,7 @@ Requires:       %{use_python_pkg}-cryptography
 Requires:       %{use_python_pkg}-rpm
 Requires:       %{use_python_pkg}-urllib3
 
-%if 0%{?python3_version_nodots} == 36
+%if "%{?python3_version}" == "3.6"
 Requires:       %{use_python_pkg}-dataclasses
 %endif
 
