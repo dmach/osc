@@ -1,0 +1,30 @@
+name: 'integration tests'
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: 'integration tests'
+    runs-on: 'ubuntu-latest'
+
+    container:
+      image: 'opensuse/tumbleweed'
+
+    steps:
+      - name: 'Install packages'
+        run: |
+            zypper --non-interactive ar obs://devel:kanku:staging devel:kanku:staging
+            zypper --non-interactive --gpg-auto-import-keys refresh
+            zypper --non-interactive dist-upgrade
+            zypper --non-interactive install git-lfs
+            zypper --non-interactive install kanku python3-pip
+
+      - uses: actions/checkout@v3
+
+      - name: 'Run unit tests'
+        run: |
+            pip3 install -e .
+            cd behave
+            kanku up --skip_all_checks
+            behave -Dosc=../osc-wrapper.py
