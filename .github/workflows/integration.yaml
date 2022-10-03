@@ -28,3 +28,4 @@ jobs:
             cd behave
             kanku up --skip_all_checks
             behave -Dosc=../osc-wrapper.py
+
