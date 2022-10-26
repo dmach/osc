@@ -29,45 +29,18 @@ jobs:
             sudo apt-get -y --no-install-recommends install diffutils pylint
 
       - uses: actions/checkout@v3
-
-      - name: 'find'
-        run: find
+        with:
+          path: osc-pr
 
       - uses: actions/checkout@v3
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           path: osc-master
 
-      - name: 'find'
-        run: find
-
       - uses: actions/checkout@v3
         with:
           repository: openSUSE/osc-plugin-collab
           path: osc-plugin-collab
-
-      - name: 'find'
-        run: find
-
-      - uses: actions/checkout@v3
-        with:
-          repository: openSUSE/osc-plugin-install
-          path: osc-plugin-install
-
-      - uses: actions/checkout@v3
-        with:
-          repository: openSUSE/openSUSE-release-tools
-          path: openSUSE-release-tools
-
-      - uses: actions/checkout@v3
-        with:
-          repository: openSUSE/osc-plugin-overview
-          path: osc-plugin-overview
-
-      - uses: actions/checkout@v3
-        with:
-          repository: openSUSE/osc-plugin-qam
-          path: osc-plugin-qam
 
       - name: 'Check osc-plugin-collab'
         run: |
@@ -75,9 +48,29 @@ jobs:
             find -maxdepth 2 -name __init__.py | while read i; do dirname $i; done > .pylint-args
             find -maxdepth 1 -name '*.py' >> .pylint-args
             PYTHONPATH="../osc-master" pylint --errors-only $(cat .pylint-args) > pylint-osc-master.log
-            PYTHONPATH=".." pylint --errors-only $(cat .pylint-args) > pylint-osc-pr.log
-            diff pylint-osc-master.log pylint-osc-pr.log
+            PYTHONPATH="../osc-pr" pylint --errors-only $(cat .pylint-args) > pylint-osc-pr.log
+            diff -u pylint-osc-master.log pylint-osc-pr.log
             popd
+
+      - uses: actions/checkout@v3
+        with:
+          repository: openSUSE/osc-plugin-install
+          path: osc-plugin-install
+
+      - name: 'Check osc-plugin-install'
+        run: |
+            pushd osc-plugin-install
+            find -maxdepth 2 -name __init__.py | while read i; do dirname $i; done > .pylint-args
+            find -maxdepth 1 -name '*.py' >> .pylint-args
+            PYTHONPATH="../osc-master" pylint --errors-only $(cat .pylint-args) > pylint-osc-master.log
+            PYTHONPATH="../osc-pr" pylint --errors-only $(cat .pylint-args) > pylint-osc-pr.log
+            diff -u pylint-osc-master.log pylint-osc-pr.log
+            popd
+
+      - uses: actions/checkout@v3
+        with:
+          repository: openSUSE/openSUSE-release-tools
+          path: openSUSE-release-tools
 
       - name: 'Check openSUSE-release-tools'
         run: |
@@ -85,6 +78,36 @@ jobs:
             find -maxdepth 2 -name __init__.py | while read i; do dirname $i; done > .pylint-args
             find -maxdepth 1 -name '*.py' >> .pylint-args
             PYTHONPATH="../osc-master" pylint --errors-only $(cat .pylint-args) > pylint-osc-master.log
-            PYTHONPATH=".." pylint --errors-only $(cat .pylint-args) > pylint-osc-pr.log
-            diff pylint-osc-master.log pylint-osc-pr.log
+            PYTHONPATH="../osc-pr" pylint --errors-only $(cat .pylint-args) > pylint-osc-pr.log
+            diff -u pylint-osc-master.log pylint-osc-pr.log
+            popd
+
+      - uses: actions/checkout@v3
+        with:
+          repository: openSUSE/osc-plugin-overview
+          path: osc-plugin-overview
+
+      - name: 'Check osc-plugin-overview'
+        run: |
+            pushd osc-plugin-overview
+            find -maxdepth 2 -name __init__.py | while read i; do dirname $i; done > .pylint-args
+            find -maxdepth 1 -name '*.py' >> .pylint-args
+            PYTHONPATH="../osc-master" pylint --errors-only $(cat .pylint-args) > pylint-osc-master.log
+            PYTHONPATH="../osc-pr" pylint --errors-only $(cat .pylint-args) > pylint-osc-pr.log
+            diff -u pylint-osc-master.log pylint-osc-pr.log
+            popd
+
+      - uses: actions/checkout@v3
+        with:
+          repository: openSUSE/osc-plugin-qam
+          path: osc-plugin-qam
+
+      - name: 'Check osc-plugin-qam'
+        run: |
+            pushd osc-plugin-qam
+            find -maxdepth 2 -name __init__.py | while read i; do dirname $i; done > .pylint-args
+            find -maxdepth 1 -name '*.py' >> .pylint-args
+            PYTHONPATH="../osc-master" pylint --errors-only $(cat .pylint-args) > pylint-osc-master.log
+            PYTHONPATH="../osc-pr" pylint --errors-only $(cat .pylint-args) > pylint-osc-pr.log
+            diff -u pylint-osc-master.log pylint-osc-pr.log
             popd
