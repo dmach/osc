@@ -25,35 +25,49 @@ jobs:
       - name: 'Install packages'
         run: |
             sudo apt-get -y update
-            sudo apt-get -y upgrade
+            #sudo apt-get -y upgrade
             sudo apt-get -y --no-install-recommends install diffutils pylint
 
       - uses: actions/checkout@v3
+
+      - name: 'find'
+        run: find
 
       - uses: actions/checkout@v3
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           path: osc-master
 
+      - name: 'find'
+        run: find
+
       - uses: actions/checkout@v3
         with:
           repository: openSUSE/osc-plugin-collab
+          path: osc-plugin-collab
+
+      - name: 'find'
+        run: find
 
       - uses: actions/checkout@v3
         with:
           repository: openSUSE/osc-plugin-install
+          path: osc-plugin-install
 
       - uses: actions/checkout@v3
         with:
           repository: openSUSE/openSUSE-release-tools
+          path: openSUSE-release-tools
 
       - uses: actions/checkout@v3
         with:
           repository: openSUSE/osc-plugin-overview
+          path: osc-plugin-overview
 
       - uses: actions/checkout@v3
         with:
           repository: openSUSE/osc-plugin-qam
+          path: osc-plugin-qam
 
       - name: 'Check osc-plugin-collab'
         run: |
