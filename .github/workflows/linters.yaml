@@ -16,7 +16,7 @@ on:
 
 jobs:
   pylint_plugins:
-    name: 'run pylint on osc plugins'
+    name: 'diff pylint runs on osc plugins'
     runs-on: 'ubuntu-latest'
     strategy:
       fail-fast: false
@@ -44,6 +44,8 @@ jobs:
 
       - name: 'Check osc-plugin-collab'
         run: |
+            pwd
+            find
             pushd osc-plugin-collab
             find -maxdepth 2 -name __init__.py | while read i; do dirname $i; done > .pylint-args
             find -maxdepth 1 -name '*.py' >> .pylint-args
