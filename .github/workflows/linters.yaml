@@ -1,0 +1,76 @@
+name: 'linters'
+
+on:
+  push:
+    branches: ['master']
+    paths:
+      - '.github/**'
+      - '**.py'
+      - 'tests/**'
+  pull_request:
+    branches: ['master']
+    paths:
+      - '.github/**'
+      - '**.py'
+      - 'tests/**'
+
+jobs:
+  pylint_plugins:
+    name: 'run pylint on plugins'
+    runs-on: 'ubuntu-latest'
+    strategy:
+      fail-fast: false
+
+    steps:
+      - name: 'Install packages'
+        run: |
+            apt-get -y update
+            apt-get -y upgrade
+            apt-get -y --no-install-recommends install diffutils pylint
+
+      - uses: actions/checkout@v3
+
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: osc-master
+
+      - uses: actions/checkout@v3
+        with:
+          repository: openSUSE/osc-plugin-collab
+
+      - uses: actions/checkout@v3
+        with:
+          repository: openSUSE/osc-plugin-install
+
+      - uses: actions/checkout@v3
+        with:
+          repository: openSUSE/openSUSE-release-tools
+
+      - uses: actions/checkout@v3
+        with:
+          repository: openSUSE/osc-plugin-overview
+
+      - uses: actions/checkout@v3
+        with:
+          repository: openSUSE/osc-plugin-qam
+
+      - name: 'Check osc-plugin-collab'
+        run: |
+            pushd osc-plugin-collab
+            find -maxdepth 2 -name __init__.py | while read i; do dirname $i; done > .pylint-args
+            find -maxdepth 1 -name '*.py' >> .pylint-args
+            PYTHONPATH="../osc-master" pylint --errors-only $(cat .pylint-args) > pylint-osc-master.log
+            PYTHONPATH=".." pylint --errors-only $(cat .pylint-args) > pylint-osc-pr.log
+            diff pylint-osc-master.log pylint-osc-pr.log
+            popd
+
+      - name: 'Check openSUSE-release-tools'
+        run: |
+            pushd openSUSE-release-tools
+            find -maxdepth 2 -name __init__.py | while read i; do dirname $i; done > .pylint-args
+            find -maxdepth 1 -name '*.py' >> .pylint-args
+            PYTHONPATH="../osc-master" pylint --errors-only $(cat .pylint-args) > pylint-osc-master.log
+            PYTHONPATH=".." pylint --errors-only $(cat .pylint-args) > pylint-osc-pr.log
+            diff pylint-osc-master.log pylint-osc-pr.log
+            popd
