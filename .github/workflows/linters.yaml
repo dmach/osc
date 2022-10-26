@@ -20,14 +20,13 @@ jobs:
     runs-on: 'ubuntu-latest'
     strategy:
       fail-fast: false
-
-    matrix:
-      plugin_repository:
-        - openSUSE/openSUSE-release-tools
-        - openSUSE/osc-plugin-collab
-        - openSUSE/osc-plugin-install
-        - openSUSE/osc-plugin-overview
-        - openSUSE/osc-plugin-qam
+      matrix:
+        plugin_repository:
+          - openSUSE/openSUSE-release-tools
+          - openSUSE/osc-plugin-collab
+          - openSUSE/osc-plugin-install
+          - openSUSE/osc-plugin-overview
+          - openSUSE/osc-plugin-qam
 
     steps:
       - name: 'Install packages'
