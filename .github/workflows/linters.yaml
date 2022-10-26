@@ -16,7 +16,7 @@ on:
 
 jobs:
   pylint_plugins:
-    name: 'run pylint on plugins'
+    name: 'run pylint on osc plugins'
     runs-on: 'ubuntu-latest'
     strategy:
       fail-fast: false
@@ -24,9 +24,9 @@ jobs:
     steps:
       - name: 'Install packages'
         run: |
-            apt-get -y update
-            apt-get -y upgrade
-            apt-get -y --no-install-recommends install diffutils pylint
+            sudo apt-get -y update
+            sudo apt-get -y upgrade
+            sudo apt-get -y --no-install-recommends install diffutils pylint
 
       - uses: actions/checkout@v3
 
