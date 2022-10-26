@@ -45,8 +45,8 @@ jobs:
       - name: 'Check osc-plugin-collab'
         run: |
             set -x
-            pwd
-            find
+            #pwd
+            #find
             cd osc-plugin-collab
             find -maxdepth 2 -name __init__.py | while read i; do dirname $i; done > .pylint-args
             find -maxdepth 1 -name '*.py' >> .pylint-args
