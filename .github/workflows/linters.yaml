@@ -44,6 +44,7 @@ jobs:
 
       - name: 'Check osc-plugin-collab'
         run: |
+            set -x
             pwd
             find
             cd osc-plugin-collab
