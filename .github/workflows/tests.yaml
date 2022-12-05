@@ -1,4 +1,4 @@
-name: 'unit tests'
+name: 'tests'
 
 on:
   push:
@@ -15,7 +15,7 @@ on:
       - 'tests/**'
 
 jobs:
-  test:
+  unit:
     name: 'unit tests'
     runs-on: 'ubuntu-latest'
     strategy:
@@ -91,3 +91,32 @@ jobs:
       - name: 'Upload coverage reports to Codecov (openSUSE Tumbleweed)'
         if: ${{ matrix.container == 'opensuse/tumbleweed' }}
         uses: codecov/codecov-action@v3
+
+  behave:
+    name: 'behave tests'
+    # to save resources, run only after unit tests have passed
+    needs: unit
+    runs-on: 'ubuntu-latest'
+    steps:
+      - name: 'Install packages'
+        run: |
+            sudo apt-get -y update
+            sudo apt-get -y --no-install-recommends install podman python3-behave diffstat diffutils python3 python3-cryptography python3-pip python3-rpm python3-setuptools python3-urllib3
+
+      # This is necessary to avoid the following error during podman build:
+      # (13)Permission denied: AH00072: make_sock: could not bind to address 0.0.0.0:80
+      - name: 'Allow binding privileged ports'
+        run: |
+            sudo sysctl net.ipv4.ip_unprivileged_port_start=0
+
+      - uses: actions/checkout@v3
+
+      - name: 'Build a container with OBS'
+        run: |
+          cd behave
+          ./container-build.sh
+
+      - name: 'Run behave tests'
+        run: |
+          cd behave
+          behave -Dosc=../osc-wrapper.py
