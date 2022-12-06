@@ -36,6 +36,6 @@ jobs:
 
           cd behave
           # build a container image with a "obs-server:latest" tag
-          ./container-build.sh
+          ./container-build.sh --squash
 
           podman push obs-server:latest "ghcr.io/$GHCR_USER/obs-server:latest"
