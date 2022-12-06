@@ -1,0 +1,34 @@
+name: "Container image build for behave testing"
+on:
+  schedule:
+    - cron:  "0 2 * * 1"  # every Monday at 2am UTC
+
+  # allow to run the workflow manually from GitHub web interface
+  workflow_dispatch:
+
+jobs:
+  container-build:
+    name: Build obs-server:latest container image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - run: |
+          # HACK: GitHub replaces secrets with "***" in the output.
+          # To avoid that, we append " #" (an empty comment) to the secret.
+          # Then the resulting value won't exactly match with the secret,
+          # hence it won't be sanitized.
+          GHCR_USER=${{secrets.GHCR_USER}}
+
+          if [ -z "$GHCR_USER" ]; then
+            echo "GHCR_USER secret not set, skipping the container build"
+            exit 0;
+          fi
+
+          echo ${{secrets.GHCR_TOKEN}} | podman login ghcr.io -u "$GHCR_USER" --password-stdin
+
+          cd behave
+          # build a container image with a "obs-server:latest" tag
+          ./container-build.sh
+
+          podman push obs-server:latest "ghcr.io/$GHCR_USER/obs-server:latest"
