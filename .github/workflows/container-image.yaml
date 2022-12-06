@@ -28,7 +28,7 @@ jobs:
           GHCR_USER=${{secrets.GHCR_USER}}
 
           if [ -z "$GHCR_USER" ]; then
-            echo "GHCR_USER secret not set, skipping the container build"
+            echo "GHCR_USER secret not set, skipping the job"
             exit 0;
           fi
 
