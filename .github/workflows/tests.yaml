@@ -1,0 +1,34 @@
+name: 'tests'
+
+on:
+  push:
+    branches: ['master']
+    paths:
+      - '.github/**'
+      - '**.py'
+      - 'tests/**'
+  pull_request:
+    branches: ['master']
+    paths:
+      - '.github/**'
+      - '**.py'
+      - 'tests/**'
+
+jobs:
+  behave:
+    name: 'behave tests'
+    # to save resources, run only after unit tests have passed
+    runs-on: 'ubuntu-latest'
+    steps:
+      - name: 'Install packages'
+        run: |
+            sudo apt-get -y update
+            sudo apt-get -y --no-install-recommends install podman python3-behave diffstat diffutils python3 python3-cryptography python3-pip python3-rpm python3-setuptools python3-urllib3
+
+      - uses: actions/checkout@v3
+
+      - name: 'Run behave tests'
+        run: |
+          podman pull ghcr.io/dmach/obs-server:latest
+          cd behave
+          behave -Dosc=../osc-wrapper.py
