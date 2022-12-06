@@ -13,6 +13,12 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      # This is necessary to avoid the following error during podman build:
+      # (13)Permission denied: AH00072: make_sock: could not bind to address 0.0.0.0:80
+      - name: "Allow binding privileged ports"
+        run: |
+          sudo sysctl net.ipv4.ip_unprivileged_port_start=0
+
       - name: "Build obs-server:latest container image"
         run: |
           # HACK: GitHub replaces secrets with "***" in the output.
