@@ -13,9 +13,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "Login to ghcr.io"
-        env:
-          - GHCR_USER: ${{secrets.GHCR_USER}}
-          - GHCR_TOKEN: ${{secrets.GHCR_TOKEN}}
+#        env:
+#          - GHCR_USER: ${{secrets.GHCR_USER}}
+#          - GHCR_TOKEN: ${{secrets.GHCR_TOKEN}}
         run: |
           echo "$GHCR_TOKEN" | podman login ghcr.io -u "$GHCR_USER" --password-stdin
 
