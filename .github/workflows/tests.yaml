@@ -25,24 +25,14 @@ jobs:
             sudo apt-get -y update
             sudo apt-get -y --no-install-recommends install podman python3-behave diffstat diffutils python3 python3-cryptography python3-pip python3-rpm python3-setuptools python3-urllib3
 
-      - uses: actions/checkout@v3
+      - name: "Checkout sources"
+        uses: actions/checkout@v3
 
-      - name: "Run behave tests"
+      - name: "Pull container image"
         run: |
-          # HACK: GitHub replaces secrets with "***" in the output.
-          # To avoid that, we append " #" (an empty comment) to the secret.
-          # Then the resulting value won't exactly match with the secret,
-          # hence it won't be sanitized.
-          GHCR_USER=${{secrets.GHCR_USER}}
-
-          if [ -z "$GHCR_USER" ]; then
-            echo "GHCR_USER secret not set, skipping the job"
-            exit 0;
-          fi
-
-          echo ${{secrets.GHCR_TOKEN}} | podman login ghcr.io -u "$GHCR_USER" --password-stdin
-
           podman pull ghcr.io/dmach/obs-server:latest
 
+      - name: "Run tests"
+        run: |
           cd behave
           behave -Dosc=../osc-wrapper.py
