@@ -3,39 +3,40 @@ on:
   schedule:
     - cron:  "0 2 * * 1"  # every Monday at 2am UTC
 
-  # allow to run the workflow manually from GitHub web interface
+  # allow manual execution from the GitHub web interface
   workflow_dispatch:
 
 jobs:
-  container-build:
+  build:
     name: "Build obs-server:latest container image"
+    if: ${{ github.repository == 'dmach/osc' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: "Login to ghcr.io"
+        env:
+          GHCR_USER: ${{ secrets.GHCR_USER }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+        run: |
+          echo "$GHCR_TOKEN" | podman login ghcr.io -u "$GHCR_USER" --password-stdin
 
-      # This is necessary to avoid the following error during podman build:
+      - name: "Checkout sources"
+        uses: actions/checkout@v3
+
+      # This step is necessary to avoid the following error during podman build:
       # (13)Permission denied: AH00072: make_sock: could not bind to address 0.0.0.0:80
       - name: "Allow binding privileged ports"
         run: |
           sudo sysctl net.ipv4.ip_unprivileged_port_start=0
 
-      - name: "Build obs-server:latest container image"
+      - name: "Build image"
+        env:
+          REPO: ${{ github.repository }}
         run: |
-          # HACK: GitHub replaces secrets with "***" in the output.
-          # To avoid that, we append " #" (an empty comment) to the secret.
-          # Then the resulting value won't exactly match with the secret,
-          # hence it won't be sanitized.
-          GHCR_USER=${{secrets.GHCR_USER}}
-
-          if [ -z "$GHCR_USER" ]; then
-            echo "GHCR_USER secret not set, skipping the job"
-            exit 0;
-          fi
-
-          echo ${{secrets.GHCR_TOKEN}} | podman login ghcr.io -u "$GHCR_USER" --password-stdin
-
           cd behave
-          # build a container image with a "obs-server:latest" tag
-          ./container-build.sh --squash
+          ./container-build.sh --squash  --label="org.opencontainers.image.source=https://github.com/$REPO"
 
+      - name: "Push image to ghcr.io"
+        env:
+          GHCR_USER: ${{ secrets.GHCR_USER }}
+        run: |
           podman push obs-server:latest "ghcr.io/$GHCR_USER/obs-server:latest"
