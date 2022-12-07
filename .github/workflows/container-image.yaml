@@ -9,13 +9,13 @@ on:
 jobs:
   build:
     name: "Build obs-server:latest container image"
-    if: github.repository == 'dmach/osc'
+    if: ${{ github.repository == 'dmach/osc' }}
     runs-on: ubuntu-latest
     steps:
       - name: "Login to ghcr.io"
-#        env:
-#          - GHCR_USER: ${{secrets.GHCR_USER}}
-#          - GHCR_TOKEN: ${{secrets.GHCR_TOKEN}}
+        env:
+          GHCR_USER: ${{ secrets.GHCR_USER }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
         run: |
           echo "$GHCR_TOKEN" | podman login ghcr.io -u "$GHCR_USER" --password-stdin
 
@@ -29,14 +29,14 @@ jobs:
           sudo sysctl net.ipv4.ip_unprivileged_port_start=0
 
       - name: "Build image"
-#        env:
-#          - REPO: ${{github.repository}}
+        env:
+          REPO: ${{ github.repository }}
         run: |
           cd behave
           ./container-build.sh --squash  --label="org.opencontainers.image.source=https://github.com/$REPO"
 
       - name: "Push image to ghcr.io"
-#        env:
-#          - GHCR_USER: ${{secrets.GHCR_USER}}
+        env:
+          GHCR_USER: ${{ secrets.GHCR_USER }}
         run: |
           podman push obs-server:latest "ghcr.io/$GHCR_USER/obs-server:latest"
