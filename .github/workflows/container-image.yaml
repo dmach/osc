@@ -9,7 +9,7 @@ on:
 jobs:
   build:
     name: "Build obs-server:latest container image"
-    if: ${{ github.repository == 'dmach/osc' }}
+    if: github.repository == "dmach/osc"
     runs-on: ubuntu-latest
     steps:
       - name: "Login to ghcr.io"
