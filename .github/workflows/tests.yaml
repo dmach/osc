@@ -16,7 +16,7 @@ on:
 
 jobs:
   behave:
-    name: "behave tests"
+    name: "behave"
     # to save resources, run only after unit tests have passed
     runs-on: "ubuntu-latest"
     steps:
