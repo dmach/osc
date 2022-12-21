@@ -193,7 +193,7 @@ Then you can use `./osc-wrapper.py` from the source directory to run osc.
 
 ## Testing
 
-Unit tests can be run from a git checkout by executing
+**Unit tests** can be run from a git checkout by executing
 
     $ ./setup.py test
 
@@ -202,7 +202,7 @@ or alternatively
     $ python3 -m unittest tests[.<module>[.<class>]]
 
 
-[Behave tests](behave/README.md) can be run from a git checkout by executing
+**[Behave tests](behave/README.md)** can be run from a git checkout by executing
 
     $ cd behave
     $ sudo zypper install podman python3-behave
