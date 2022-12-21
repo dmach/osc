@@ -28,9 +28,6 @@ To install from git, do
     ./setup.py build
     ./setup.py install
 
-Alternatively, you can directly use `./osc-wrapper.py` from the source directory,
-which is easier if you develop on osc.
-
 
 ## Configuration
 
@@ -176,8 +173,37 @@ or submit [pull-requests](https://github.com/openSUSE/osc/pulls)
 to the [osc](https://github.com/openSUSE/osc/issues) project on GitHub.
 
 
+## Developing
+
+You may need to install osc dependencies first.
+
+    # OPTION 1: install packages with osc dependencies
+    zypper install $(rpmspec contrib/osc.spec -q --requires)
+
+    # OPTION 2: install osc dependencies from pypi
+    #
+    # rpm python module is not available on pypi, it must be installed as a package
+    # zypper install python3-rpm
+    #
+    # NOTE: osc module from an installed package prevails over osc installed via pip
+    pip3 install --user --ediatable .
+
+Then you can use `./osc-wrapper.py` from the source directory to run osc.
+
+
 ## Testing
 
 Unit tests can be run from a git checkout by executing
 
     ./setup.py test
+
+    or alternatively
+
+    python3 -m unittest tests[.<module>[.<class>]]
+
+
+[Behave tests](behave/README.md) can be run from a git checkout by executing
+
+    cd behave
+    podman pull ghcr.io/suse-autobuild/obs-server:latest
+    behave -Dosc=../osc-wrapper.py [--wip --no-skipped] [features/<file>.feature]
