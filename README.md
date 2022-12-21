@@ -190,6 +190,12 @@ You may need to install osc dependencies first.
 
 Then you can use `./osc-wrapper.py` from the source directory to run osc.
 
+### Coding style
+
+We're following PEP-8 and use black/darker to discover formatting issues,
+but we're not enforcing black formatting at every cost.
+Lines shouldn't exceed 120 characters.
+
 
 ## Testing
 
