@@ -183,8 +183,8 @@ You may need to install osc dependencies first.
 ### Option 2: install osc dependencies from pypi
 
     # rpm python module is not available on pypi, it must be installed as a package
-    # zypper install python3-rpm
-    #
+    $ zypper install python3-rpm
+
     # NOTE: osc module from an installed package prevails over osc installed via pip
     $ pip3 install --user --ediatable .
 
