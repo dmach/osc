@@ -15,18 +15,17 @@ OpenSUSE Commander (osc) is a command-line interface to the
 
 RPM packages are available in the [openSUSE:Tools](http://download.opensuse.org/repositories/openSUSE:/Tools/) repository.
 
-    zypper addrepo --repo http://download.opensuse.org/repositories/openSUSE:/Tools/openSUSE_Tumbleweed/openSUSE:Tools.repo
-    zypper install osc
+    $ sudo zypper addrepo --repo http://download.opensuse.org/repositories/openSUSE:/Tools/openSUSE_Tumbleweed/openSUSE:Tools.repo
+    $ sudo zypper install osc
 
 **Unstable** RPM packages are available in the [OBS:Server:Unstable](http://download.opensuse.org/repositories/OBS:/Server:/Unstable/) repository.
 
-    zypper addrepo --repo http://download.opensuse.org/repositories/OBS:/Server:/Unstable/openSUSE_Factory/OBS:Server:Unstable.repo
-    zypper install osc
+    $ sudo zypper addrepo --repo http://download.opensuse.org/repositories/OBS:/Server:/Unstable/openSUSE_Factory/OBS:Server:Unstable.repo
+    $ sudo zypper install osc
 
 To install from git, do
 
-    ./setup.py build
-    ./setup.py install
+    $ pip3 install --user .
 
 
 ## Configuration
@@ -66,10 +65,10 @@ Check out content
 
 Update a working copy
 
-     osc up
-     osc up [pac_dir]                   # update a single package by its path
-     osc up *                           # from within a project dir, update all packages
-     osc up                             # from within a project dir, update all packages
+    osc up
+    osc up [pac_dir]                    # update a single package by its path
+    osc up *                            # from within a project dir, update all packages
+    osc up                              # from within a project dir, update all packages
                                         #   AND check out all newly added packages
 
 If an update can't be merged automatically, a file is in `C` (conflict)
@@ -177,16 +176,17 @@ to the [osc](https://github.com/openSUSE/osc/issues) project on GitHub.
 
 You may need to install osc dependencies first.
 
-    # OPTION 1: install packages with osc dependencies
-    zypper install $(rpmspec contrib/osc.spec -q --requires)
+### Option 1: install packages with osc dependencies
 
-    # OPTION 2: install osc dependencies from pypi
-    #
+    $ sudo zypper install $(rpmspec contrib/osc.spec -q --requires)
+
+### Option 2: install osc dependencies from pypi
+
     # rpm python module is not available on pypi, it must be installed as a package
     # zypper install python3-rpm
     #
     # NOTE: osc module from an installed package prevails over osc installed via pip
-    pip3 install --user --ediatable .
+    $ pip3 install --user --ediatable .
 
 Then you can use `./osc-wrapper.py` from the source directory to run osc.
 
@@ -195,15 +195,16 @@ Then you can use `./osc-wrapper.py` from the source directory to run osc.
 
 Unit tests can be run from a git checkout by executing
 
-    ./setup.py test
+    $ ./setup.py test
 
-    or alternatively
+or alternatively
 
-    python3 -m unittest tests[.<module>[.<class>]]
+    $ python3 -m unittest tests[.<module>[.<class>]]
 
 
 [Behave tests](behave/README.md) can be run from a git checkout by executing
 
-    cd behave
-    podman pull ghcr.io/suse-autobuild/obs-server:latest
-    behave -Dosc=../osc-wrapper.py [--wip --no-skipped] [features/<file>.feature]
+    $ cd behave
+    $ sudo zypper install podman python3-behave
+    $ podman pull ghcr.io/suse-autobuild/obs-server:latest
+    $ behave -Dosc=../osc-wrapper.py [--wip --no-skipped] [features/<file>.feature]
