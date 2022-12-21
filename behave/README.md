@@ -3,12 +3,12 @@ Install requirements
 
 On openSUSE:
 ```
-$ zypper install osc podman python3-behave
+$ sudo zypper install osc podman python3-behave
 ```
 
 On Fedora:
 ```
-$ dnf install osc podman python3-behave
+$ sudo dnf install osc podman python3-behave
 ```
 
 
@@ -60,7 +60,7 @@ $ behave -Dosc=../osc-wrapper.py features/<file>.feature
 Run tests being worked on (decorated with `@wip`)
 ```
 $ cd behave
-behave -Dosc=../osc-wrapper.py --wip -k
+$ behave -Dosc=../osc-wrapper.py --wip -k
 ```
 
 
