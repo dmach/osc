@@ -144,6 +144,104 @@ class SchemaParser:
 
         return node
 
+    def _handle_children(self, node, result):
+        for child in node:
+            ln = self.ln(child)
+            handler = getattr(self, f"handle_{ln}")
+            handler(child, result, parent_name=self.ln(node))
+
+    def _assert_node_name(self, node, name):
+        ln = self.ln(node)
+        assert ln == name, f"Invalid node name '{ln}'. Expected '{name}'"
+
+    def _assert_empty_attrib(self, attrib):
+        assert not attrib, f"There are unprocessed attributes left: {attrib}"
+
+    def _assert_no_children(self, node):
+        assert len(node) == 0, f"There are unexpected child nodes: {node[:]}"
+
+    def _get_attrib(self, node):
+        attrs = dict(node.attrib)
+
+        # name is used as a key and doesn't belong to values, let's remove it
+        attrs.pop("name", None)
+
+        data = {
+            "optional": attrs.pop("optional", None),
+            "doc": attrs.pop("doc", None),
+            "list": attrs.pop("list", None),
+        }
+        self._assert_empty_attrib(attrs)
+
+        # remove those items from have value equal to None
+        for k, v in list(data.items()):
+            if v is None:
+                del data[k]
+
+        return data
+
+    def handle_define(self, node, result, parent_name=None):
+        self._assert_node_name(node, "define")
+        attrs = dict(node.attrib)
+        name = attrs.pop("name", None)
+        self._assert_empty_attrib(attrs)
+
+        define_data = {}
+        self._handle_children(node, define_data)
+
+        result.setdefault("defines", {})
+        result["defines"][name] = define_data
+
+    def handle_choice(self, node, result, parent_name=None):
+        self._assert_node_name(node, "choice")
+
+        data = self._get_attrib(node)
+        self._handle_children(node, data)
+        result["choices"] = data
+
+    def handle_value(self, node, result, parent_name=None):
+        """
+        Create ``result["values"] = []`` and append ``node.text`` to it.
+        """
+        self._assert_node_name(node, "value")
+        self._assert_no_children(node)
+        self._assert_empty_attrib(node.attrib)
+
+        result.setdefault("values", [])
+        result["values"].append(node.text)
+
+    def handle_element(self, node, result, parent_name=None):
+        self._assert_node_name(node, "element")
+
+        attrs = dict(node.attrib)
+        name = attrs.pop("name", None)
+        data = self._get_attrib(node)
+
+        self._handle_children(node, data)
+
+        elem = {name: data}
+        if parent_name == "define":
+            result.update(elem)
+        else:
+            result.setdefault("elements", {})
+            result["elements"].update(elem)
+
+    def handle_attribute(self, node, result, parent_name=None):
+        self._assert_node_name(node, "attribute")
+
+        attrs = dict(node.attrib)
+        name = attrs.pop("name", None)
+        data = self._get_attrib(node)
+
+        self._handle_children(node, data)
+
+        result.setdefault("attributes", {})
+        result["attributes"][name] = data
+
+    def handle_ref(self, node, result, parent_name=None):
+        self._assert_node_name(node, "ref")
+        result["ref"] = node.attrib["name"]
+
     def parse(self):
         self.root = self._parse(self.path)
         assert self.ln(self.root) == "grammar"
@@ -152,6 +250,7 @@ class SchemaParser:
         self._simplify(self.root)
 
         result = {}
+        self._handle_children(self.root, result)
         return result
 
 
@@ -160,6 +259,13 @@ def main():
     parser = SchemaParser(path)
     parsed_schema = parser.parse()
     # print(parser.to_string())
+    # print(parsed_schema)
+
+    import glob
+    for path in glob.glob(os.path.join(OBS_DIR, "docs/api/api/*.rng")):
+        # print(path)
+        parser = SchemaParser(path)
+        parsed_schema = parser.parse()
 
 
 if __name__ == "__main__":
