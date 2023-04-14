@@ -2,6 +2,7 @@
 
 
 import os
+import re
 import sys
 import textwrap
 from xml.etree import ElementTree as ET
@@ -254,6 +255,227 @@ class SchemaParser:
         return result
 
 
+def get_property_name(name, plural=False):
+    name = name.replace("-", "_")
+    if plural:
+        if name.endswith("y"):
+            name = name[:-1]
+            name = f"{name}ies"
+        else:
+            name = f"{name}s"
+    return name
+
+
+def get_wrapper_module_and_class(ref):
+    if not ref:
+        return None, None
+
+    wrapper_module = None
+    wrapper_class = ref
+    wrapper_class = re.sub("-element$", "", wrapper_class)
+    wrapper_class = "".join(i.capitalize() for i in wrapper_class.split("-"))
+    wrapper_class = wrapper_class or None
+
+    if wrapper_class:
+        wrapper_module = ref
+        wrapper_module = re.sub("-element$", "", wrapper_module)
+        wrapper_module = wrapper_module.replace("-", "_")
+
+    return wrapper_module, wrapper_class
+
+
+def parsed_schema_to_class(parsed_schema, define_name, class_name):
+    definition = parsed_schema["defines"][define_name]
+
+    # HACK
+    if len(definition) != 1:
+        return ""
+    assert len(definition) == 1, f"{define_name} {class_name} {definition.keys()}"
+
+    print("DEF", define_name, class_name, definition)
+
+    if list(definition.keys()) == ["choices"]:
+        pass
+    else:
+        definition = list(definition.values())[0]
+#    print("DEF2", define_name, class_name, definition)
+
+    result = []
+    result += ["from typing import List"]
+    result += ["from typing import Type"]
+    result += [""]
+    result += ["from . import _base"]
+
+    imports = set()
+    for name, data in definition.get("elements", {}).items():
+        if "choices" in data:
+            continue
+        ref = data.get("ref", None)
+        if not ref:
+            continue
+        wrapper_module, wrapper_class = get_wrapper_module_and_class(ref)
+        imports.add(f"from .{wrapper_module} import {wrapper_class}")
+    imports = sorted(imports)
+    result += imports
+
+    result += [""]
+    result += [""]
+    result += [f"class {class_name}(_base.ApiEndPointBase):"]
+
+    attributes = list(definition.get("attributes", {}))
+    elements = list(definition.get("elements", {}))
+#    choices = definition.get("choices", "")
+#    choices = choices.split(",") if choices else []
+    choices = ""
+
+    if any((attributes, elements, choices)):
+        result += [""]
+    if attributes:
+        result += [f"    _attributes: List[str] = {attributes}"]
+    if elements:
+        result += [f"    _elements: List[str] = {elements}"]
+    if choices:
+        result += [f"    _choices: List[str] = {choices}"]
+
+    for name, data in definition.get("attributes", {}).items():
+        property_name = get_property_name(name, plural=False)
+        if property_name == name:
+            property_name_kw = ""
+        else:
+            property_name_kw = f", property_name=\"{property_name}\""
+
+        doc = data.get("doc", None)
+        if doc and not doc.strip():
+            doc = None
+
+        optional = bool(int(data.get("optional", "0")))
+
+        choices = data.get("choices", "")
+#        choices = choices.split(",") if choices else []
+
+        if doc and choices:
+            doc += "\n\n"
+            doc += "Choices:\n"
+            for choice in choices:
+                doc += f"  - ``{choice}``\n"
+
+        if doc:
+            doc = textwrap.indent(doc, "        ")
+
+        if any((optional, choices)):
+            result += [""]
+        if optional:
+            result += [f"    _{property_name}_is_optional: bool = {optional}"]
+        if choices:
+            result += [f"    _{property_name}_choices: List[str] = {choices}"]
+
+        result += [""]
+        result += [f"    @property"]
+        result += [f"    def {property_name}(self) -> str:"]
+        if doc:
+            result += [f'        """']
+            for line in doc.splitlines():
+                result += [line]
+            result += [f'        """']
+        result += [f"        return self._get_attribute(\"{name}\"{property_name_kw})"]
+        result += [""]
+        result += [f"    @{property_name}.setter"]
+        result += [f"    def {property_name}(self, value: str):"]
+        result += [f"        self._set_attribute(\"{name}\", value{property_name_kw})"]
+        result += [""]
+        result += [f"    @{property_name}.deleter"]
+        result += [f"    def {property_name}(self):"]
+        result += [f"        self._delete_attribute(\"{name}\"{property_name_kw})"]
+
+    for name, data in definition.get("elements", {}).items():
+        is_list = "list" in data
+
+        doc = data.get("doc", None)
+        if doc and not doc.strip():
+            doc = None
+        if doc:
+            doc = textwrap.indent(doc, "        ")
+
+        property_name = get_property_name(name, plural=is_list)
+        if property_name == name:
+            property_name_kw = ""
+        else:
+            property_name_kw = f", property_name=\"{property_name}\""
+
+#        print(name, data)
+        optional = bool(int(data.get("optional", "0")))
+
+        choices = data.get("choices", "")
+#        choices = choices.split(",") if choices else []
+
+        if choices:
+            # no need to wrap choices in a wrapper class
+            # TODO: fix
+            wrapper_class = None
+        else:
+            wrapper_class = data.get("ref", "")
+            wrapper_class = re.sub("-element$", "", wrapper_class)
+            wrapper_class = "".join(i.capitalize() for i in wrapper_class.split("-"))
+            wrapper_class = wrapper_class or None
+            if wrapper_class:
+                wrapper_module = data.get("ref", "")
+                wrapper_module = re.sub("-element$", "", wrapper_module)
+                wrapper_module = wrapper_module.replace("-", "_")
+
+        if wrapper_class and is_list:
+            pytype = f"List[{wrapper_class}]"
+        elif wrapper_class:
+            pytype = f"{wrapper_class}"
+        elif is_list:
+            pytype = "List[str]"
+        else:
+            pytype = "str"
+
+        attributes = list(data.get("attributes", {}))
+        elements = list(data.get("elements", {}))
+
+        result += [f"# {data}"]
+        if any((is_list, wrapper_class, optional, choices, attributes, elements)):
+            result += [""]
+        if is_list:
+            result += [f"    _{property_name}_is_list: bool = True"]
+        if wrapper_class:
+#            result += [f"    from .{wrapper_module} import {wrapper_class}"]
+            result += [f"    _{property_name}_wrapper_class: Type = {wrapper_class}"]
+        if optional:
+            result += [f"    _{property_name}_is_optional: bool = {optional}"]
+        if choices:
+            result += [f"    _{property_name}_choices: List[str] = {choices}"]
+        if attributes:
+            result += [f"    _{property_name}_attributes: List[str] = {attributes}"]
+        if elements:
+            result += [f"    _{property_name}_elements: List[str] = {elements}"]
+
+        result += [""]
+        result += [f"    @property"]
+        result += [f"    def {property_name}(self) -> {pytype}:"]
+        if doc:
+            result += [f'        """']
+            for line in doc.splitlines():
+                result += [line]
+            result += [f'        """']
+        result += [f"        return self._get_element(\"{name}\"{property_name_kw})"]
+        result += [""]
+        result += [f"    @{property_name}.setter"]
+        result += [f"    def {property_name}(self, value: {pytype}):"]
+        result += [f"        self._set_element(\"{name}\", value{property_name_kw})"]
+        result += [""]
+        result += [f"    @{property_name}.deleter"]
+        result += [f"    def {property_name}(self):"]
+        result += [f"        self._delete_element(\"{name}\"{property_name_kw})"]
+
+    # TODO: deleter
+    # TODO: check if value is ok; if we can delete (mandatory)
+    # TODO: attributes = lists 0+, 1+
+    result += [""]
+    return "\n".join(result)
+
+
 def main():
     path = os.path.join(OBS_DIR, "docs/api/api/project.rng")
     parser = SchemaParser(path)
@@ -262,11 +484,27 @@ def main():
     # print(parsed_schema)
 
     import glob
-    for path in glob.glob(os.path.join(OBS_DIR, "docs/api/api/*.rng")):
+    import re
+    path = os.path.join(OBS_DIR, "docs/api/api/project.rng")
+    for path in [path]:
+#    for path in glob.glob(os.path.join(OBS_DIR, "docs/api/api/*.rng")):
         # print(path)
         parser = SchemaParser(path)
         parsed_schema = parser.parse()
 
+        defines = list(parsed_schema["defines"].keys())
+        for define in defines:
+            cls_name = re.sub("-element$", "", define)
+            cls_name = "".join(i.capitalize() for i in cls_name.split("-"))
+            o = parsed_schema_to_class(parsed_schema, define, cls_name)
+            if not o.strip():
+                print("SKIPPING", define)
+                continue
+            fn = "generated-classes/" + re.sub("-element$", "", define).replace("-", "_") + ".py"
+            with open(fn, "w") as f:
+                f.write(o)
+
+#        parsed_schema_to_class
 
 if __name__ == "__main__":
     main()
