@@ -328,6 +328,9 @@ def parsed_schema_to_class(parsed_schema, define_name, class_name):
         pass
     else:
         definition = list(definition.values())[0]
+        if isinstance(definition, str):
+            # TODO
+            return ""
 
     result = []
     result += ["from typing import List"]
