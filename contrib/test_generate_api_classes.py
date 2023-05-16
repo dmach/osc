@@ -13,7 +13,7 @@ import osc._private
 #for loader, module_name, _ in pkgutil.iter_modules(path=["generated-classes"], prefix=""):
 #    print(loader, module_name, _)
 #loader = importlib.find_loader("osc._private.objects", path="generated-classes")
-spec = importlib.util.spec_from_file_location("osc._private.objects", os.path.abspath("generated_classes/__init__.py"))
+spec = importlib.util.spec_from_file_location("osc._private.objects", os.path.abspath("generated-classes/__init__.py"))
 mod = importlib.util.module_from_spec(spec)
 sys.modules["osc._private.objects"] = mod
 spec.loader.exec_module(mod)
