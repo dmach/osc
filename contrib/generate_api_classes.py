@@ -27,6 +27,7 @@ class SchemaParser:
     def __init__(self, path):
         self.path = os.path.abspath(path)
         self.root = None
+        self.define_element_names = {}
 
     def to_string(self):
         ET.indent(self.root)
@@ -79,7 +80,6 @@ class SchemaParser:
           <element name="foo" optional="1" />
         """
         ln = self.ln(node)
-
         node.attrib.pop("ns", None)
 
         # in each iteration an element goes in and is replaced with what's returned from _simplify()
@@ -142,8 +142,31 @@ class SchemaParser:
         elif ln == "empty":
             # remove <empty />
             return None
+        elif ln == "ref":
+            define_name = node.attrib["name"]
+            element_name = self.define_element_names[define_name]
+            if element_name:
+                new_node = ET.SubElement(parent, "element")
+                new_node.attrib["name"] = element_name
+                new_node.attrib["ref"] = define_name
+                return new_node
 
         return node
+
+    def _get_define_element_names(self, node, parent=None):
+        for child in node:
+            self._get_define_element_names(child, parent=node)
+
+        if self.ln(node) == "define":
+            define_name = node.attrib["name"]
+            self.define_element_names[define_name] = None
+
+            element = node.find("{*}element")
+            if element is not None:
+                element_name = element.attrib["name"]
+                self.define_element_names[define_name] = element_name
+                return
+
 
     def _handle_children(self, node, result):
         for child in node:
@@ -171,6 +194,7 @@ class SchemaParser:
             "optional": attrs.pop("optional", None),
             "doc": attrs.pop("doc", None),
             "list": attrs.pop("list", None),
+            "ref": attrs.pop("ref", None),
         }
         self._assert_empty_attrib(attrs)
 
@@ -199,6 +223,8 @@ class SchemaParser:
         data = self._get_attrib(node)
         self._handle_children(node, data)
         result["choices"] = data
+        #result.update(data)
+        #result["choices"] = "1"
 
     def handle_value(self, node, result, parent_name=None):
         """
@@ -248,6 +274,7 @@ class SchemaParser:
         assert self.ln(self.root) == "grammar"
 
         self._expand_includes(self.root)
+        self._get_define_element_names(self.root)
         self._simplify(self.root)
 
         result = {}
@@ -285,6 +312,9 @@ def get_wrapper_module_and_class(ref):
 
 
 def parsed_schema_to_class(parsed_schema, define_name, class_name):
+    from copy import deepcopy
+    parsed_schema = deepcopy(parsed_schema)
+
     definition = parsed_schema["defines"][define_name]
 
     # HACK
@@ -292,13 +322,12 @@ def parsed_schema_to_class(parsed_schema, define_name, class_name):
         return ""
     assert len(definition) == 1, f"{define_name} {class_name} {definition.keys()}"
 
-    print("DEF", define_name, class_name, definition)
-
     if list(definition.keys()) == ["choices"]:
+        pass
+    elif list(definition.keys()) == ["attributes"]:
         pass
     else:
         definition = list(definition.values())[0]
-#    print("DEF2", define_name, class_name, definition)
 
     result = []
     result += ["from typing import List"]
@@ -318,15 +347,32 @@ def parsed_schema_to_class(parsed_schema, define_name, class_name):
     imports = sorted(imports)
     result += imports
 
-    result += [""]
-    result += [""]
-    result += [f"class {class_name}(_base.ApiEndPointBase):"]
+    def _get_choices_attributes_elements(data):
+        if "choices" in data:
+            assert "attributes" not in data
+            assert "elements" not in data
+            choices = data.get("choices", {}).get("values", [])
+            attributes = list(data.get("choices", {}).get("attributes", {}))
+            elements = list(data.get("choices", {}).get("elements", {}))
+        else:
+            choices = []
+            attributes = list(data.get("attributes", {}))
+            elements = list(data.get("elements", {}))
+        return choices, attributes, elements
 
-    attributes = list(definition.get("attributes", {}))
-    elements = list(definition.get("elements", {}))
-#    choices = definition.get("choices", "")
-#    choices = choices.split(",") if choices else []
-    choices = ""
+    parent_class = "ApiEndPointBase"
+    choices, attributes, elements = _get_choices_attributes_elements(definition)
+
+    if "choices" in definition:
+        if choices:
+            parent_class = "Choices"
+        else:
+            parent_class = "ElementChoices"
+
+    result += [""]
+    result += [""]
+    result += [f"class {class_name}(_base.{parent_class}):"]
+    result += [f"    pass"]
 
     if any((attributes, elements, choices)):
         result += [""]
@@ -350,8 +396,7 @@ def parsed_schema_to_class(parsed_schema, define_name, class_name):
 
         optional = bool(int(data.get("optional", "0")))
 
-        choices = data.get("choices", "")
-#        choices = choices.split(",") if choices else []
+        choices, attributes, elements = _get_choices_attributes_elements(data)
 
         if doc and choices:
             doc += "\n\n"
@@ -388,6 +433,12 @@ def parsed_schema_to_class(parsed_schema, define_name, class_name):
         result += [f"        self._delete_attribute(\"{name}\"{property_name_kw})"]
 
     for name, data in definition.get("elements", {}).items():
+        ref = data.get("ref", None)
+        if ref == "flag-element":
+            data.update(parsed_schema["defines"]["flag-switch"])
+            del data["ref"]
+            ref = None
+
         is_list = "list" in data
 
         doc = data.get("doc", None)
@@ -402,22 +453,17 @@ def parsed_schema_to_class(parsed_schema, define_name, class_name):
         else:
             property_name_kw = f", property_name=\"{property_name}\""
 
-#        print(name, data)
         optional = bool(int(data.get("optional", "0")))
 
-        choices = data.get("choices", "")
-#        choices = choices.split(",") if choices else []
-
-        if choices:
-            # no need to wrap choices in a wrapper class
-            # TODO: fix
-            wrapper_class = None
-        else:
+        choices, attributes, elements = _get_choices_attributes_elements(data)
+        if 1:
             wrapper_class = data.get("ref", "")
             wrapper_class = re.sub("-element$", "", wrapper_class)
             wrapper_class = "".join(i.capitalize() for i in wrapper_class.split("-"))
             wrapper_class = wrapper_class or None
             if wrapper_class:
+                if not is_list:
+                    is_list = bool(parsed_schema["defines"][ref].get("list", None))
                 wrapper_module = data.get("ref", "")
                 wrapper_module = re.sub("-element$", "", wrapper_module)
                 wrapper_module = wrapper_module.replace("-", "_")
@@ -440,7 +486,6 @@ def parsed_schema_to_class(parsed_schema, define_name, class_name):
         if is_list:
             result += [f"    _{property_name}_is_list: bool = True"]
         if wrapper_class:
-#            result += [f"    from .{wrapper_module} import {wrapper_class}"]
             result += [f"    _{property_name}_wrapper_class: Type = {wrapper_class}"]
         if optional:
             result += [f"    _{property_name}_is_optional: bool = {optional}"]
@@ -485,12 +530,13 @@ def main():
 
     import glob
     import re
-    path = os.path.join(OBS_DIR, "docs/api/api/project.rng")
-    for path in [path]:
-#    for path in glob.glob(os.path.join(OBS_DIR, "docs/api/api/*.rng")):
-        # print(path)
+    # paths = [os.path.join(OBS_DIR, "docs/api/api/project.rng")]
+    paths = glob.glob(os.path.join(OBS_DIR, "docs/api/api/*.rng"))
+    for path in paths:
         parser = SchemaParser(path)
         parsed_schema = parser.parse()
+        # import json
+        # print(json.dumps(parsed_schema, indent=4))
 
         defines = list(parsed_schema["defines"].keys())
         for define in defines:
@@ -504,7 +550,6 @@ def main():
             with open(fn, "w") as f:
                 f.write(o)
 
-#        parsed_schema_to_class
 
 if __name__ == "__main__":
     main()
