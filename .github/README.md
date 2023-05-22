@@ -15,15 +15,16 @@ OpenSUSE Commander (osc) is a command-line interface to the
 
 * Changes in packaging
 
-  [ ] Build osc for all %pythons
-  [ ] Support Python virtual envs
-  [ ] Split osc into several subpackages
+[ ] Build osc for all %pythons
+[ ] Support Python virtual envs
+[ ] Split osc into several subpackages
 
 * Config parser
-  [ ] We don’t want to maintain yet another config parser
-  [ ] Replace with an INI parser library?
-  [ ] Migrate to TOML?
-  [ ] Something that preserves comments
+
+ [ ] We don’t want to maintain yet another config parser
+ [ ] Replace with an INI parser library?
+ [ ] Migrate to TOML?
+ [ ] Something that preserves comments
 
 * Working with XML
   [ ] XML should not be part of osc public API
