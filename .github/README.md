@@ -14,29 +14,27 @@ OpenSUSE Commander (osc) is a command-line interface to the
 ## Roadmap
 
 * Changes in packaging
-
-[ ] Build osc for all %pythons
-[ ] Support Python virtual envs
-[ ] Split osc into several subpackages
+  - [ ] Build osc for all %pythons
+  - [ ] Support Python virtual envs
+  - [ ] Split osc into several subpackages
 
 * Config parser
-
- [ ] We don’t want to maintain yet another config parser
- [ ] Replace with an INI parser library?
- [ ] Migrate to TOML?
- [ ] Something that preserves comments
+  - [ ] We don’t want to maintain yet another config parser
+  - [ ] Replace with an INI parser library?
+  - [ ] Migrate to TOML?
+  - [ ] Something that preserves comments
 
 * Working with XML
-  [ ] XML should not be part of osc public API
-  [ ] Osc contributors shouldn’t touch XML unless they really have to
-  [ ] How about to generate classes wrapping XML from OBS RelaxNG schemas?
+  - [ ] XML should not be part of osc public API
+  - [ ] Osc contributors shouldn’t touch XML unless they really have to
+  - [ ] How about to generate classes wrapping XML from OBS RelaxNG schemas?
 
 * Working with XPath
-  [ ] Building XPath queries is prone to errors
-  [ ] Wouldn’t generating XPaths from function arguments be more readable?
+  - [ ] Building XPath queries is prone to errors
+  - [ ] Wouldn’t generating XPaths from function arguments be more readable?
 
 * Argcomplete
-  [ ] The current completion is hand-crafted
-  [ ] We’d like to use argcomplete instead
+  - [ ] The current completion is hand-crafted
+  - [ ] We’d like to use argcomplete instead
       * Requires argument sanitization
       * “project package” vs “project/package”
