@@ -6,7 +6,7 @@ and shouldn't be used in any code outside osc.
 
 
 import os
-from xml.etree import ElementTree as ET
+from .obs_api.xmlmodel.xml import ET
 
 from . import oscerr
 from ._private import api

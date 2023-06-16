@@ -4,10 +4,10 @@ information instead of scanning individual rpms."""
 
 import gzip
 import os
-from xml.etree import ElementTree as ET
 
 from . import rpmquery
 from . import packagequery
+from ..obs_api.xmlmodel.xml import ET
 
 
 def namespace(name):

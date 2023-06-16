@@ -16,11 +16,11 @@ from urllib.error import URLError, HTTPError
 
 import urllib3.exceptions
 
-from . import _private
 from . import commandline
 from . import conf as osc_conf
 from . import core as osc_core
 from . import oscerr
+from .obs_api.xmlmodel import xml as osc_xml
 from .OscConfigParser import configparser
 from .oscssl import CertVerificationError
 from .util.cpio import CpioError
@@ -124,7 +124,7 @@ def run(prg, argv=None):
             if b'<summary>' in body:
                 msg = body.split(b'<summary>')[1]
                 msg = msg.split(b'</summary>')[0]
-                msg = _private.api.xml_unescape(msg)
+                msg = osc_xml.unescape(msg)
                 print(decode_it(msg), file=sys.stderr)
         if e.code >= 500 and e.code <= 599:
             print(f'\nRequest: {e.filename}')

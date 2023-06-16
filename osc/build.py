@@ -14,12 +14,12 @@ import sys
 from tempfile import NamedTemporaryFile, mkdtemp
 from urllib.parse import urlsplit
 from urllib.request import URLError, HTTPError
-from xml.etree import ElementTree as ET
 
 from . import conf
 from . import connection
 from . import core
 from . import oscerr
+from .obs_api.xmlmodel.xml import ET
 from .core import get_buildinfo, store_read_project, store_read_package, meta_exists, quote_plus, get_buildconfig, is_package_dir, dgst
 from .core import get_binarylist, get_binary_file, run_external, return_external, raw_input
 from .fetch import Fetcher, OscFileGrabber, verify_pacs

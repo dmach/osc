@@ -37,7 +37,7 @@ from typing import Optional, Dict, Union, List, Iterable
 from urllib.parse import urlsplit, urlunsplit, urlparse, quote_plus, urlencode, unquote
 from urllib.error import HTTPError
 from urllib.request import pathname2url
-from xml.etree import ElementTree as ET
+from .obs_api.xmlmodel.xml import ET
 
 try:
     import distro
