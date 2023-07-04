@@ -125,7 +125,7 @@ class Configuration(xmlmodel.Model):
         help_text=(
             "A filter that specifies URLs that should be excluded from proxying.",
             "",
-            "This should be a coma separated list like the environment variable 'NO_PROXY', e.g.: NO_PROXY="*.foo.com,bar.org,.startup.io"",
+            "This should be a coma separated list like the environment variable 'NO_PROXY', e.g.: NO_PROXY=\"*.foo.com,bar.org,.startup.io\"",
         ),
     )
 
@@ -169,7 +169,7 @@ class Configuration(xmlmodel.Model):
         choices=('on', 'off'),
         optional=True,
         help_text=(
-            "When a user creates a new project by branching a package, disable publishing for that project. The default is "on" to save disk space and bandwidth.",
+            "When a user creates a new project by branching a package, disable publishing for that project. The default is \"on\" to save disk space and bandwidth.",
         ),
     )
 
