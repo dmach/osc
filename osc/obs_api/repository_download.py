@@ -4,7 +4,7 @@
 from typing import Optional
 
 from . import xmlmodel
-from .repository_master import RepositoryMaster
+from .repository_download_master import RepositoryDownloadMaster
 
 
 class RepositoryDownload(xmlmodel.Model):
@@ -28,9 +28,9 @@ class RepositoryDownload(xmlmodel.Model):
         optional=True,
     )
 
-    master: Optional[RepositoryMaster] = xmlmodel.ModelField(
+    master: Optional[RepositoryDownloadMaster] = xmlmodel.ModelField(
         "master",
-        model_class=RepositoryMaster,
+        model_class=RepositoryDownloadMaster,
         optional=True,
     )
 

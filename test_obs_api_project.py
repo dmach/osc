@@ -247,6 +247,35 @@ class ProjectTest(unittest.TestCase):
 """.strip()
         self.assertEqual(project.to_string(), expected)
 
+    def test_maintenance(self):
+        data = """
+<project name="project-name">
+  <title />
+  <description />
+</project>
+""".strip()
+        project = Project.from_string(data)
+        self.assertEqual(project.build, ())
+
+        project.maintenance = {
+            "maintains": (
+                {"project": "foo"},
+                {"project": "bar"},
+            )
+        }
+
+        expected = """
+<project name="project-name">
+  <title />
+  <description />
+  <maintenance>
+    <maintains project="foo" />
+    <maintains project="bar" />
+  </maintenance>
+</project>
+""".strip()
+        self.assertEqual(project.to_string(), expected)
+
 
 if __name__ == "__main__":
     unittest.main()

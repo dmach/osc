@@ -4,15 +4,15 @@
 from typing import Tuple
 
 from . import xmlmodel
-from .project_maintains import ProjectMaintains
+from .project_maintenance_maintains import ProjectMaintenanceMaintains
 
 
 class ProjectMaintenance(xmlmodel.Model):
     TAG_NAME = "maintenance"
 
-    maintainss: Tuple[ProjectMaintains] = xmlmodel.ModelListField(
+    maintains: Tuple[ProjectMaintenanceMaintains] = xmlmodel.ModelListField(
         "maintains",
-        model_class=ProjectMaintains,
+        model_class=ProjectMaintenanceMaintains,
     )
 
 # AUTO-GENERATED: The code above is auto-generated. Place any additional code below this line.
