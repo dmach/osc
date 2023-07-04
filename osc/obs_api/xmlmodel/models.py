@@ -125,7 +125,7 @@ class Model:
 
     def _pre_save(self):
         self.validate()
-#        self._sort_nodes()
+        self._sort_nodes()
         self._reindent(self._root)
         xml.indent(self._root)
 
