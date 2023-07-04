@@ -6,15 +6,16 @@ from typing import Optional
 from . import xmlmodel
 
 
-class RepositoryMaster(xmlmodel.Model):
-    TAG_NAME = "master"
+class PackageDevel(xmlmodel.Model):
+    TAG_NAME = "devel"
 
-    url: str = xmlmodel.AttributeField(
-        "url",
+    project: Optional[str] = xmlmodel.AttributeField(
+        "project",
+        optional=True,
     )
 
-    sslfingerprint: Optional[str] = xmlmodel.AttributeField(
-        "sslfingerprint",
+    package: Optional[str] = xmlmodel.AttributeField(
+        "package",
         optional=True,
     )
 

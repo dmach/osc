@@ -1,3 +1,8 @@
+# This file is partially auto-generated. Place any additional code below the 'AUTO-GENERATED' separator.
+
+
+from typing import Optional
+
 from . import xmlmodel
 from .repository_master import RepositoryMaster
 
@@ -5,31 +10,33 @@ from .repository_master import RepositoryMaster
 class RepositoryDownload(xmlmodel.Model):
     TAG_NAME = "download"
 
-    arch = xmlmodel.AttributeField(
+    arch: str = xmlmodel.AttributeField(
         "arch",
     )
 
-    url = xmlmodel.AttributeField(
+    url: str = xmlmodel.AttributeField(
         "url",
     )
 
-    repotype = xmlmodel.AttributeField(
+    repotype: str = xmlmodel.AttributeField(
         "repotype",
         choices=('rpmmd', 'susetags', 'deb', 'arch', 'mdk', 'registry'),
     )
 
-    archfilter = xmlmodel.TextNodeField(
+    archfilter: Optional[str] = xmlmodel.TextNodeField(
         "archfilter",
         optional=True,
     )
 
-    master = xmlmodel.ModelField(
+    master: Optional[RepositoryMaster] = xmlmodel.ModelField(
         "master",
         model_class=RepositoryMaster,
         optional=True,
     )
 
-    pubkey = xmlmodel.TextNodeField(
+    pubkey: Optional[str] = xmlmodel.TextNodeField(
         "pubkey",
         optional=True,
     )
+
+# AUTO-GENERATED: The code above is auto-generated. Place any additional code below this line.

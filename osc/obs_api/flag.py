@@ -1,22 +1,15 @@
 from . import choices
 from . import xmlmodel
-from .repository import Repository
 
 
 class Flag(xmlmodel.Model):
     TAG_NAME = ("disable", "enable")
 
-    @classmethod
-    def new(cls, flag, **kwargs):
-        root = xmlmodel.xml.ET.Element(flag)
-        obj = cls(root)
-
-        # just to run validators on the flag
-        kwargs["flag"] = flag
-
-        for key, value in kwargs.items():
-            setattr(obj, key, value)
-        return obj
+    def __init__(self, **kwargs):
+        if "_root" not in kwargs:
+            flag = kwargs.get("flag")
+            kwargs["_root"] = xmlmodel.xml.ET.Element(flag)
+        super().__init__(**kwargs)
 
     flag = xmlmodel.TagNameField(
         choices=TAG_NAME,

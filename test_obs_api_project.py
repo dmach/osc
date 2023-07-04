@@ -7,115 +7,133 @@ from osc.obs_api.project import Project
 from osc.obs_api.repository_path import RepositoryPath
 from osc.obs_api.flag import Flag
 
-import osc.conf
-osc.conf.get_config(override_http_debug=0)
+from osc.obs_api.xmlmodel import InvalidChoice
+from osc.obs_api.xmlmodel import ValueRequiredError
 
 
 class ProjectTest(unittest.TestCase):
+
     def test_name(self):
         data = """
-<project name="test-name" />
+<project name="project-name">
+  <title />
+  <description />
+</project>
 """.strip()
         project = Project.from_string(data)
-        self.assertEqual(project.name, "test-name")
         self.assertEqual(project.to_string(), data)
+        self.assertEqual(project.name, "project-name")
 
-        project.name = "CHANGED"
-        self.assertEqual(project.name, "CHANGED")
-        expected = """<project name="CHANGED" />"""
+        project.name = "new-name"
+        self.assertEqual(project.name, "new-name")
+
+        expected = """
+<project name="new-name">
+  <title />
+  <description />
+</project>
+""".strip()
         self.assertEqual(project.to_string(), expected)
+
+        self.assertRaises(ValueRequiredError, delattr, project, "name")
+        self.assertRaises(ValueRequiredError, setattr, project, "name", None)
+
+    def test_title(self):
+        data = """
+<project name="project-name">
+  <title />
+  <description />
+</project>
+""".strip()
+        project = Project.from_string(data)
+        self.assertEqual(project.to_string(), data)
+        self.assertEqual(project.title, "")
+
+        project.title = "new-title"
+        self.assertEqual(project.title, "new-title")
+
+        expected = """
+<project name="project-name">
+  <title>new-title</title>
+  <description />
+</project>
+""".strip()
+        self.assertEqual(project.to_string(), expected)
+
+        self.assertRaises(ValueRequiredError, delattr, project, "title")
+        self.assertRaises(ValueRequiredError, setattr, project, "title", None)
 
     def test_description(self):
-        # create
         data = """
-<project name="test-name">
-</project>""".strip()
-        project = Project.from_string(data)
-        self.assertEqual(project.description, None)
-        project.description = ""
-        expected = """
-<project name="test-name">
+<project name="project-name">
+  <title />
   <description />
-</project>""".strip()
-        self.assertEqual(project.to_string(), expected)
-
-        # read
-        data = """
-<project name="test-name">
-  <description>test-desc</description>
-</project>""".strip()
+</project>
+""".strip()
         project = Project.from_string(data)
-        self.assertEqual(project.description, "test-desc")
         self.assertEqual(project.to_string(), data)
-
-        # update
-        project.description = "CHANGED"
-        self.assertEqual(project.description, "CHANGED")
-        expected = """
-<project name="test-name">
-  <description>CHANGED</description>
-</project>""".strip()
-        self.assertEqual(project.to_string(), expected)
-
-        # delete
-        self.assertRaises(ValueError, delattr, project, "description")
-
-        # clear
-        project.description = ""
         self.assertEqual(project.description, "")
+
+        project.description = "new-description"
+        self.assertEqual(project.description, "new-description")
+
         expected = """
-<project name="test-name">
-  <description />
-</project>""".strip()
+<project name="project-name">
+  <title />
+  <description>new-description</description>
+</project>
+""".strip()
         self.assertEqual(project.to_string(), expected)
+
+        self.assertRaises(ValueRequiredError, delattr, project, "description")
+        self.assertRaises(ValueRequiredError, setattr, project, "description", None)
 
     def test_kind(self):
-        # create
         data = """
-<project name="test-name" />
+<project name="project-name">
+  <title />
+  <description />
+</project>
 """.strip()
         project = Project.from_string(data)
+        self.assertEqual(project.to_string(), data)
         self.assertEqual(project.kind, None)
+
         project.kind = "standard"
         expected = """
-<project name="test-name" kind="standard" />
+<project name="project-name" kind="standard">
+  <title />
+  <description />
+</project>
 """.strip()
         self.assertEqual(project.to_string(), expected)
 
-        # read
-        data = """
-<project name="test-name" kind="standard" />
-""".strip()
-        project = Project.from_string(data)
-        self.assertEqual(project.kind, "standard")
-        self.assertEqual(project.to_string(), data)
+        self.assertRaises(InvalidChoice, setattr, project, "kind", "INVALID")
 
-        # update
-        #self.assertRaises(ValueError, setattr, project, "kind", "CHANGED")
-        project.kind = "maintenance"
-        self.assertEqual(project.kind, "maintenance")
-        expected = """
-<project name="test-name" kind="maintenance" />
-""".strip()
-        self.assertEqual(project.to_string(), expected)
-
-        # delete
         del project.kind
         expected = """
-<project name="test-name" />
+<project name="project-name">
+  <title />
+  <description />
+</project>
 """.strip()
         self.assertEqual(project.to_string(), expected)
 
     def test_lock(self):
-        # create
         data = """
-<project name="test-name" />
+<project name="project-name">
+  <title />
+  <description />
+</project>
 """.strip()
         project = Project.from_string(data)
         self.assertEqual(project.lock, None)
+
         project.lock = "enable"
         expected = """
-<project name="test-name">
+<project name="project-name">
+  <title />
+  <description />
   <lock>
     <enable />
   </lock>
@@ -123,26 +141,15 @@ class ProjectTest(unittest.TestCase):
 """.strip()
         self.assertEqual(project.to_string(), expected)
 
-        # read
-        data = """
-<project name="test-name">
+        self.assertRaises(InvalidChoice, setattr, project, "lock", "INVALID")
+        project.lock = "disable"
+        self.assertEqual(project.lock, "disable")
+        expected = """
+<project name="project-name">
+  <title />
+  <description />
   <lock>
     <disable />
-  </lock>
-</project>
-""".strip()
-        project = Project.from_string(data)
-        self.assertEqual(project.lock, "disable")
-        self.assertEqual(project.to_string(), data)
-
-        # update
-        self.assertRaises(ValueError, setattr, project, "lock", "CHANGED")
-        project.lock = "enable"
-        self.assertEqual(project.lock, "enable")
-        expected = """
-<project name="test-name">
-  <lock>
-    <enable />
   </lock>
 </project>
 """.strip()
@@ -151,62 +158,94 @@ class ProjectTest(unittest.TestCase):
         # delete
         del project.lock
         expected = """
-<project name="test-name" />
+<project name="project-name">
+  <title />
+  <description />
+</project>
 """.strip()
         self.assertEqual(project.to_string(), expected)
 
     def test_repository(self):
         data = """
-<project name="test-name">
+<project name="project-name">
+  <title />
+  <description />
+</project>
+""".strip()
+        project = Project.from_string(data)
+        self.assertEqual(project.repositories, ())
+#        self
+
+        project.repositories = (
+            {
+                "name": "snapshot",
+                "archs": ("x86_64", "i586"),
+                "paths": (),
+            },
+        )
+
+        expected = """
+<project name="project-name">
+  <title />
+  <description />
   <repository name="snapshot">
-    <path project="openSUSE:Tumbleweed" repository="standard"/>
     <arch>x86_64</arch>
     <arch>i586</arch>
   </repository>
 </project>
 """.strip()
-        project = Project.from_string(data)
-        self.assertEqual(len(project.repositories), 1)
+        self.assertEqual(project.to_string(), expected)
 
-        repo = project.repositories[0]
-        self.assertEqual(repo.name, "snapshot")
-        self.assertEqual(repo.archs, ("x86_64", "i586"))
-
-        self.assertEqual(len(repo.paths), 1)
-        path = repo.paths[0]
-        self.assertEqual(path.project, "openSUSE:Tumbleweed")
-        self.assertEqual(path.repository, "standard")
-
-        repo.paths = (
-            RepositoryPath.new(project="foo", repository="bar"),
-        )
-
-        self.assertEqual(len(repo.paths), 1)
-        path = repo.paths[0]
-        self.assertEqual(path.project, "foo")
-        self.assertEqual(path.repository, "bar")
-        project.to_string()
+        project.repositories = None
+        expected = """
+<project name="project-name">
+  <title />
+  <description />
+</project>
+""".strip()
+        self.assertEqual(project.to_string(), expected)
 
     def test_build(self):
         data = """
-<project name="test-name">
-  <build>
-    <enable arch="i586" repository="qwerty"/>
-  </build>
+<project name="project-name">
+  <title />
+  <description />
 </project>
 """.strip()
         project = Project.from_string(data)
-        self.assertNotEqual(project.build, ())
+        self.assertEqual(project.build, ())
 
-        x = project.build[0]
-        print(x.flag, x.arch, x.repository)
+        project.build += (
+            {"flag": "enable"},
+            {"flag": "disable", "arch": "x86_64"},
+            {"flag": "disable", "arch": "x86_64", "repository": "foobar"},
+        )
+        self.assertEqual(len(project.build), 3)
 
-        print(project.to_string())
+        self.assertEqual(project.build[0].flag, "enable")
+        self.assertEqual(project.build[0].arch, None)
+        self.assertEqual(project.build[0].repository, None)
 
-        project.build += (Flag.new("enable"), )
-        project.build += (Flag.new("disable", arch="x86_64"), )
-        project.build += (Flag.new("disable", arch="x86_64", repository="asdasd"), )
-        print(project.to_string())
+        self.assertEqual(project.build[1].flag, "disable")
+        self.assertEqual(project.build[1].arch, "x86_64")
+        self.assertEqual(project.build[1].repository, None)
+
+        self.assertEqual(project.build[2].flag, "disable")
+        self.assertEqual(project.build[2].arch, "x86_64")
+        self.assertEqual(project.build[2].repository, "foobar")
+
+        expected = """
+<project name="project-name">
+  <title />
+  <description />
+  <build>
+    <enable />
+    <disable arch="x86_64" />
+    <disable arch="x86_64" repository="foobar" />
+  </build>
+</project>
+""".strip()
+        self.assertEqual(project.to_string(), expected)
 
 
 if __name__ == "__main__":

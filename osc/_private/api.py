@@ -39,7 +39,7 @@ def get(apiurl, path, query=None):
     return root
 
 
-def post(apiurl, path, query=None):
+def post(apiurl, path, query=None, **kwargs):
     """
     Send a POST request to OBS.
 
@@ -62,7 +62,35 @@ def post(apiurl, path, query=None):
         raise TypeError("Argument `path` expects a list of strings")
 
     url = osc_core.makeurl(apiurl, path, query)
-    with osc_connection.http_POST(url) as f:
+    with osc_connection.http_POST(url, **kwargs) as f:
+        root = ET.parse(f).getroot()
+    return root
+
+
+def put(apiurl, path, query=None, **kwargs):
+    """
+    Send a PUT request to OBS.
+
+    :param apiurl: OBS apiurl.
+    :type  apiurl: str
+    :param path: URL path segments.
+    :type  path: list(str)
+    :param query: URL query values.
+    :type  query: dict(str, str)
+    :returns: Parsed XML root.
+    :rtype:   xml.etree.ElementTree.Element
+    """
+    from .. import connection as osc_connection
+    from .. import core as osc_core
+
+    assert apiurl
+    assert path
+
+    if not isinstance(path, (list, tuple)):
+        raise TypeError("Argument `path` expects a list of strings")
+
+    url = osc_core.makeurl(apiurl, path, query)
+    with osc_connection.http_PUT(url, **kwargs) as f:
         root = ET.parse(f).getroot()
     return root
 

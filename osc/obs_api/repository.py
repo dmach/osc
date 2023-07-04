@@ -1,3 +1,9 @@
+# This file is partially auto-generated. Place any additional code below the 'AUTO-GENERATED' separator.
+
+
+from typing import Optional
+from typing import Tuple
+
 from . import xmlmodel
 from . import choices
 from .repository_download import RepositoryDownload
@@ -9,54 +15,56 @@ from .repository_releasetarget import RepositoryReleasetarget
 class Repository(xmlmodel.Model):
     TAG_NAME = "repository"
 
-    name = xmlmodel.AttributeField(
+    name: str = xmlmodel.AttributeField(
         "name",
     )
 
-    rebuild = xmlmodel.AttributeField(
+    rebuild: Optional[str] = xmlmodel.AttributeField(
         "rebuild",
         choices=choices.REBUILD_MODES,
         optional=True,
     )
 
-    block = xmlmodel.AttributeField(
+    block: Optional[str] = xmlmodel.AttributeField(
         "block",
         choices=choices.BLOCK_MODES,
         optional=True,
     )
 
-    linkedbuild = xmlmodel.AttributeField(
+    linkedbuild: Optional[str] = xmlmodel.AttributeField(
         "linkedbuild",
         choices=choices.LINKEDBUILD_MODES,
         optional=True,
     )
 
-    downloads = xmlmodel.ModelListField(
+    downloads: Optional[Tuple[RepositoryDownload]] = xmlmodel.ModelListField(
         "download",
         model_class=RepositoryDownload,
         optional=True,
     )
 
-    releasetargets = xmlmodel.ModelListField(
+    releasetargets: Optional[Tuple[RepositoryReleasetarget]] = xmlmodel.ModelListField(
         "releasetarget",
         model_class=RepositoryReleasetarget,
         optional=True,
     )
 
-    hostsystems = xmlmodel.ModelListField(
+    hostsystems: Optional[Tuple[RepositoryHostsystem]] = xmlmodel.ModelListField(
         "hostsystem",
         model_class=RepositoryHostsystem,
         optional=True,
     )
 
-    paths = xmlmodel.ModelListField(
+    paths: Optional[Tuple[RepositoryPath]] = xmlmodel.ModelListField(
         "path",
         model_class=RepositoryPath,
         optional=True,
     )
 
-    archs = xmlmodel.TextNodeListField(
+    archs: Optional[Tuple[str]] = xmlmodel.TextNodeListField(
         "arch",
         choices=choices.BUILD_ARCH,
         optional=True,
     )
+
+# AUTO-GENERATED: The code above is auto-generated. Place any additional code below this line.

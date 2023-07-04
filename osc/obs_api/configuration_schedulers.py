@@ -2,19 +2,18 @@
 
 
 from typing import Optional
+from typing import Tuple
 
 from . import xmlmodel
+from . import choices
 
 
-class RepositoryMaster(xmlmodel.Model):
-    TAG_NAME = "master"
+class ConfigurationSchedulers(xmlmodel.Model):
+    TAG_NAME = "schedulers"
 
-    url: str = xmlmodel.AttributeField(
-        "url",
-    )
-
-    sslfingerprint: Optional[str] = xmlmodel.AttributeField(
-        "sslfingerprint",
+    archs: Optional[Tuple[str]] = xmlmodel.TextNodeListField(
+        "arch",
+        choices=choices.BUILD_ARCH,
         optional=True,
     )
 

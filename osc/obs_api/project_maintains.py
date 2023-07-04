@@ -1,9 +1,14 @@
+# This file is partially auto-generated. Place any additional code below the 'AUTO-GENERATED' separator.
+
+
 from . import xmlmodel
 
 
 class ProjectMaintains(xmlmodel.Model):
     TAG_NAME = "maintains"
 
-    project = xmlmodel.AttributeField(
+    project: str = xmlmodel.AttributeField(
         "project",
     )
+
+# AUTO-GENERATED: The code above is auto-generated. Place any additional code below this line.

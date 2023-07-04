@@ -49,25 +49,6 @@ BUILD_ARCH: tuple[str] = (
     "local",
 )
 
-BUILD_SANDBOX: tuple[str] = (
-    "chroot",
-    "lxc",
-    "kvm",
-    "xen",
-    "secure",
-)
-
-GLOBAL_ROLE: tuple[str] = (
-    "Admin",
-    "User",
-)
-
-JOBSTATUS_RESULT: tuple[str] = (
-    "succeeded",
-    "failed",
-    "unchanged",
-)
-
 LINKEDBUILD_MODES: tuple[str] = (
     "off",
     "localdep",
@@ -83,28 +64,6 @@ LOCAL_ROLE: tuple[str] = (
     "reader",
 )
 
-OBS_RATINGS: tuple[str] = (
-    "low",
-    "moderate",
-    "important",
-    "critical",
-)
-
-PACKAGE_CODE: tuple[str] = (
-    "unresolvable",
-    "succeeded",
-    "failed",
-    "broken",
-    "disabled",
-    "excluded",
-    "blocked",
-    "locked",
-    "unknown",
-    "scheduled",
-    "building",
-    "finished",
-)
-
 REBUILD_MODES: tuple[str] = (
     "transitive",
     "direct",
@@ -115,41 +74,5 @@ RELEASE_TRIGGERS: tuple[str] = (
     "manual",
     "maintenance",
     "obsgendiff",
-)
-
-REPOSITORY_CODE: tuple[str] = (
-    "unknown",
-    "broken",
-    "scheduling",
-    "blocked",
-    "building",
-    "finished",
-    "publishing",
-    "published",
-    "unpublished",
-)
-
-SERVICE_MODES: tuple[str] = (
-    "trylocal",
-    "localonly",
-    "serveronly",
-    "buildtime",
-    "manual",
-    "disabled",
-)
-
-SUPPORTSTATUS_CHOICES: tuple[str] = (
-    "l3",
-    "l2",
-    "l1",
-    "acc",
-    "unsupported",
-)
-
-TOKEN_KIND: tuple[str] = (
-    "rss",
-    "rebuild",
-    "release",
-    "runservice",
 )
 

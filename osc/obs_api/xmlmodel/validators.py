@@ -32,7 +32,7 @@ class ChoicesValidator(Validator):
         if value is None and self.field.optional:
             return
         if value not in self.field.choices:
-            raise InvalidChoice(value, self.field.choices, what=None)
+            raise InvalidChoice(value, self.field.choices, what=what)
 
 
 class InvalidType(ValidationError):
