@@ -1,10 +1,12 @@
+from abc import ABC, abstractmethod
+
 from .validators import ChoicesValidator
 from .validators import TypeValidator
 from .validators import OptionalValidator
 from .xml import ET
 
 
-class Field(property):
+class Field(property, ABC):
     def __init__(self, name, typ=None, optional=False, choices=None, help_text=None, validators=None):
         self.name = name
         self.typ = typ or str
@@ -27,14 +29,17 @@ class Field(property):
 
         super().__init__(fget=self.get, fset=self.set, fdel=self.delete, doc=help_text)
 
+    @abstractmethod
     def get(self, model):
-        raise NotImplementedError()
+        pass
 
+    @abstractmethod
     def set(self, model, values):
-        raise NotImplementedError()
+        pass
 
+    @abstractmethod
     def delete(self, model, validate=True):
-        raise NotImplementedError()
+        pass
 
     def _get_typed_value(self, value):
         if value is None:
