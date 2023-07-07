@@ -33,7 +33,7 @@ class Field(property):
     def set(self, model, values):
         raise NotImplementedError()
 
-    def delete(self, model):
+    def delete(self, model, validate=True):
         raise NotImplementedError()
 
     def _get_typed_value(self, value):
@@ -233,7 +233,7 @@ class ModelField(Field):
         # The ``values`` contain objects encapsulating XML elements. Attach those to model's XML root.
         model._root.append(value._root)
 
-    def delete(self, model):
+    def delete(self, model, validate=True):
         nodes = model._root.findall(self.name)
         for node in nodes:
             model._root.remove(node)
@@ -289,7 +289,7 @@ class ModelListField(Field):
         for value in values:
             root.append(value._root)
 
-    def delete(self, model):
+    def delete(self, model, validate=True):
         nodes = model._root.findall(self.name)
         for node in nodes:
             model._root.remove(node)
@@ -335,7 +335,7 @@ class EnableDisableField(Field):
         node = ET.SubElement(model._root, self.name)
         ET.SubElement(node, value)
 
-    def delete(self, model):
+    def delete(self, model, validate=True):
         nodes = model._root.findall(self.name)
         for node in nodes:
             model._root.remove(node)
