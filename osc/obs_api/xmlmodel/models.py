@@ -67,9 +67,7 @@ class Model:
         """
         Return the object as XML in form of utf-8 encoded bytes.
         """
-        if validate:
-            self._pre_save()
-        ET.indent(self._root, space="  ", level=0)
+        self._pre_save(validate=validate)
         return ET.tostring(self._root, encoding="utf-8", short_empty_elements=True)
 
     def to_string(self, validate=True):
@@ -123,8 +121,9 @@ class Model:
                 ex.xml = self.to_string(validate=False)
                 raise
 
-    def _pre_save(self):
-        self.validate()
+    def _pre_save(self, validate=True):
+        if validate:
+            self.validate()
         self._sort_nodes()
         self._reindent(self._root)
         xml.indent(self._root)
