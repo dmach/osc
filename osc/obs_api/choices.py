@@ -1,10 +1,13 @@
-BLOCK_MODES: tuple[str] = (
+from typing import Tuple
+
+
+BLOCK_MODES: Tuple[str] = (
     "all",
     "local",
     "never",
 )
 
-BUILD_ARCH: tuple[str] = (
+BUILD_ARCH: Tuple[str] = (
     "noarch",
     "aarch64",
     "aarch64_ilp32",
@@ -49,14 +52,14 @@ BUILD_ARCH: tuple[str] = (
     "local",
 )
 
-LINKEDBUILD_MODES: tuple[str] = (
+LINKEDBUILD_MODES: Tuple[str] = (
     "off",
     "localdep",
     "alldirect",
     "all",
 )
 
-LOCAL_ROLE: tuple[str] = (
+LOCAL_ROLE: Tuple[str] = (
     "maintainer",
     "bugowner",
     "reviewer",
@@ -64,15 +67,31 @@ LOCAL_ROLE: tuple[str] = (
     "reader",
 )
 
-REBUILD_MODES: tuple[str] = (
+OBS_RATINGS: Tuple[str] = (
+    "low",
+    "moderate",
+    "important",
+    "critical",
+)
+
+REBUILD_MODES: Tuple[str] = (
     "transitive",
     "direct",
     "local",
 )
 
-RELEASE_TRIGGERS: tuple[str] = (
+RELEASE_TRIGGERS: Tuple[str] = (
     "manual",
     "maintenance",
     "obsgendiff",
 )
 
+REQUEST_STATES: Tuple[str] = (
+    "review",
+    "new",
+    "accepted",
+    "declined",
+    "revoked",
+    "superseded",
+    "deleted",
+)
